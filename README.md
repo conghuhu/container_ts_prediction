@@ -6,4 +6,6 @@
 
 `eda.ipynb`: 数据探索
 
-`CNN_LSTM_Attention.ipynb`: 基于CNN+LSTM+Attention的模型
+`data_preprocess.ipynb`: 数据预处理
+
+`CNN_LSTM_Attention.ipynb`: 基于CNN+LSTM+Attention的多变量时序预测模型
