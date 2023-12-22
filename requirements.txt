@@ -1,0 +1,9 @@
+numpy~=1.25.0
+torch~=2.1.0+cu121
+torchaudio~=2.1.0+cu121
+torchvision~=0.16.0
+matplotlib~=3.7.1
+pandas~=2.0.3
+sklearn~=0.0.post11
+tqdm~=4.66.1
+seaborn~=0.12.2
