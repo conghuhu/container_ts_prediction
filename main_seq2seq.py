@@ -3,16 +3,16 @@ from exp.exp_seq2seq import Exp_Seq2Seq
 
 class Config:
     data_path = './datasets/serverless/cached/queue_id_{}.csv'.format(36)
-    timestep = 12  # 时间步长，就是利用多少时间窗口
-    batch_size = 32  # 批次大小
+    timestep = 126  # 时间步长，就是利用多少时间窗口
+    batch_size = 16  # 批次大小
     feature_size = 7  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
     hidden_size = 256  # 隐层大小
-    output_size = 6
-    pre_len = output_size
-    num_layers = 5  # lstm的层数
+    output_size = 1  # 只预测CPU
+    pre_len = 24  # 预测长度
+    num_layers = 1  # RNN的层数
     epochs = 100  # 迭代轮数
-    learning_rate = 0.0001  # 学习率
-    patience = 10  # 早停机制，如果损失多少个epochs没有改变就停止训练。
+    learning_rate = 0.001  # 学习率
+    patience = 30  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     model_name = 'seq2seq'  # 模型名称
     features = 'MS'  # 三个选项M，MS，S。分别是多元预测多元，多元预测单元，单元预测单元
     use_gpu = True
@@ -35,10 +35,11 @@ setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}'.format(config.model_name, config.fea
 exp = Exp_Seq2Seq(config)
 
 print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
-exp.train(setting)
+# exp.train(setting)
 
 print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-exp.test(setting)
+# exp.test(setting)
+exp.test(setting, load=True)
 
 print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
 exp.predict(setting, load=True)

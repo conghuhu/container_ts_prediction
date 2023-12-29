@@ -11,9 +11,10 @@ from tqdm import tqdm
 
 from data.data_loader import Dataset_Custom, Dataset_Pred
 from exp.exp_basic import Exp_Basic
-from models.seq2seq.seq2seq_net import Seq2Seq
+from models.seq2seq.en_dn_wrapper_net import EncoderDecoderWrapper
 from utils.losses import mape_loss, mase_loss, smape_loss
 from utils.metrics import metric
+from utils.plot_tools import plot_loss_data
 from utils.tools import EarlyStopping, adjust_learning_rate
 
 
@@ -23,7 +24,8 @@ class Exp_Seq2Seq(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = Seq2Seq(args.feature_size, args.hidden_size, args.num_layers, args.output_size)
+        model = EncoderDecoderWrapper(args.feature_size, args.output_size, args.hidden_size, args.num_layers,
+                                      args.pre_len, args.timestep)
         return model
 
     def _load_data(self):
@@ -32,7 +34,7 @@ class Exp_Seq2Seq(Exp_Basic):
             args=args,
             data_path=args.data_path,
             flag="train",
-            size=[args.timestep, args.feature_size, args.output_size],
+            size=[args.timestep, args.feature_size, args.pre_len],
             features=args.features,
             target=args.target,
             scale_type=args.scale_type,
@@ -42,7 +44,7 @@ class Exp_Seq2Seq(Exp_Basic):
             args=args,
             data_path=args.data_path,
             flag="test",
-            size=[args.timestep, args.feature_size, args.output_size],
+            size=[args.timestep, args.feature_size, args.pre_len],
             features=args.features,
             target=args.target,
             scale_type=args.scale_type,
@@ -52,7 +54,7 @@ class Exp_Seq2Seq(Exp_Basic):
             args=args,
             data_path=args.data_path,
             flag="pred",
-            size=[args.timestep, args.feature_size, args.output_size],
+            size=[args.timestep, args.feature_size, args.pre_len],
             features=args.features,
             target=args.target,
             scale_type=args.scale_type,
@@ -124,6 +126,8 @@ class Exp_Seq2Seq(Exp_Basic):
         model_optim = self._select_optimizer()
         loss_function = self._select_loss_function()
 
+        results_loss = []
+
         for epoch in range(self.args.epochs):
             iter_count = 0
             train_loss = []
@@ -134,18 +138,24 @@ class Exp_Seq2Seq(Exp_Basic):
                 iter_count += 1
 
                 model_optim.zero_grad()
+                if i == 0:
+                    print("batch_x shape: ", batch_x.shape)
+                    print("batch_y shape: ", batch_y.shape)
                 # batch_x shape: [batch_size, timestep, feature_size]
-                # batch_y shape: [batch_size, pred_len]
+                # batch_y shape: [batch_size, pred_len, 1]
                 pred, true = self._process_one_batch(train_data_set, batch_x, batch_y)
-                # pred shape: [batch_size, pred_len]
-                # true shape: [batch_size, pred_len]
+                if i == 0:
+                    print("pred shape: ", pred.shape)
+                    print("true shape: ", true.shape)
+                # pred shape: [batch_size, pred_len, 1]
+                # true shape: [batch_size, pred_len, 1]
                 loss = loss_function(pred, true)
                 train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
                     print("\niters: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     speed = (time.time() - time_now) / iter_count
-                    left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
+                    left_time = speed * ((self.args.epochs - epoch) * train_steps - i)
                     print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
                     iter_count = 0
                     time_now = time.time()
@@ -156,6 +166,8 @@ class Exp_Seq2Seq(Exp_Basic):
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
             test_loss = self.vali(test_data_set, test_loader, loss_function)
+
+            results_loss.append(train_loss)
 
             print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Test Loss: {3:.7f}".format(
                 epoch + 1, train_steps, train_loss, test_loss))
@@ -171,14 +183,19 @@ class Exp_Seq2Seq(Exp_Basic):
             if hasattr(torch.cuda, 'empty_cache'):
                 torch.cuda.empty_cache()
 
+        plot_loss_data(results_loss, self.args.loss_name)
+
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
 
         return self.model
 
-    def test(self, setting):
+    def test(self, setting, load=False):
         test_data_set, test_loader = self._get_data(flag='test')
-
+        if load:
+            path = os.path.join(self.args.checkpoints, setting)
+            best_model_path = path + '/' + 'checkpoint.pth'
+            self.model.load_state_dict(torch.load(best_model_path))
         self.model.eval()
 
         preds: list = []
@@ -229,15 +246,19 @@ class Exp_Seq2Seq(Exp_Basic):
         true_show_data: np.ndarray
         for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader)):
             history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
+            print(history_data.shape)
             pred, true = self._process_one_batch(pred_data, batch_x, batch_y)
-            # pred.shape [batchSize=1, pre_len]
+            # pred.shape [batchSize=1, pre_len, 1]
+            pred = pred[0]
             pred = pred_data.inverse_transform_y(pred)
             # pred.shape [pre_len, 1]
+            true = true[0]
             true = pred_data.inverse_transform_y(true)
-            # print(pred)
+            # true.shape [pre_len, 1]
 
             # 真实展示的数据
-            true_show_data = np.concatenate([history_data, true], axis=0)
+            true_show_data = np.concatenate([history_data[:, -1], true[:, -1]], axis=0)
+            # true_show_data.shape [timestep+pre_len]
             break
 
         # 将预测结果导出到本地
@@ -257,8 +278,8 @@ class Exp_Seq2Seq(Exp_Basic):
             # print("pred data: \n", pred)
             plt.plot(range(len(true_show_data)), true_show_data,
                      label='True Values')
-            plt.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred,
-                     label='Predicted Values')
+            plt.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
+                     marker='o', label='Predicted Values')
         else:
             print('未实现多元预测多元的可视化')
             return

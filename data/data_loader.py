@@ -115,10 +115,10 @@ class Dataset_Custom(Dataset):
 
         # 划分训练集、测试集
         x_train = dataX[: train_size, :].reshape(-1, timestep, feature_size)
-        y_train = dataY[: train_size].reshape(-1, output_size)
+        y_train = dataY[: train_size].reshape(-1, output_size, 1)
 
         x_test = dataX[train_size:, :].reshape(-1, timestep, feature_size)
-        y_test = dataY[train_size:].reshape(-1, output_size)
+        y_test = dataY[train_size:].reshape(-1, output_size, 1)
 
         # 将数据转为tensor
         x_train_tensor = torch.from_numpy(x_train).to(torch.float32)
@@ -227,10 +227,11 @@ class Dataset_Pred(Dataset):
 
     def inverse_transform(self, data):
         if torch.is_tensor(data):
-            data = data.cpu().detach().numpy().reshape(-1, 1)
+            data = data.cpu().detach().numpy()
         return self.scaler_model.inverse_transform(data)
 
     def inverse_transform_y(self, data):
         if torch.is_tensor(data):
-            data = data.cpu().detach().numpy().reshape(-1, 1)
+            # data = data.cpu().detach().numpy().reshape(-1, 1)
+            data = data.cpu().detach().numpy()
         return self.scaler.inverse_transform(data)
