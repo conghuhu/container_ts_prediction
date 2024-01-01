@@ -201,10 +201,23 @@ class Exp_Seq2Seq(Exp_Basic):
         preds: list = []
         trues: list = []
 
+        results = []
+        labels = []
+
         for batch_x, batch_y in tqdm(test_loader):
             pred, true = self._process_one_batch(test_data_set, batch_x, batch_y)
-            preds.append(pred.detach().cpu().numpy())
-            trues.append(true.detach().cpu().numpy())
+            # 只取每个多步预测的第一个值
+            pred = pred[:, 0, :]
+            true = true[:, 0, :]
+            pred = test_data_set.inverse_transform_y(pred.detach().cpu().numpy())
+            true = test_data_set.inverse_transform_y(true.detach().cpu().numpy())
+            # pred shape: [batch_size, 1]
+            preds.append(pred)
+            trues.append(true)
+
+            for i in range(len(pred)):
+                results.append(pred[i][-1])
+                labels.append(true[i][-1])
 
         preds: np.ndarray = np.concatenate(preds, axis=0)
         trues: np.ndarray = np.concatenate(trues, axis=0)
@@ -218,10 +231,22 @@ class Exp_Seq2Seq(Exp_Basic):
         mae, mse, rmse, mape, mspe = metric(preds, trues)
         print('mse: {}, mae: {}, rmse: {}, mape: {}, mspe: {}'.format(mse, mae, rmse, mape, mspe))
 
+        # 将数据保存到本地
         np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
         np.save(folder_path + 'pred.npy', preds)
         np.save(folder_path + 'true.npy', trues)
-        # 增加一个绘图功能
+
+        # 画出测试集拟合曲线
+        plt.figure(figsize=(15, 8))
+        # 绘制历史数据
+        plt.plot(labels, label='TrueValue')
+        # 绘制预测数据
+        plt.plot(results, label='Prediction')
+
+        # 添加标题和图例
+        plt.title("test state")
+        plt.legend()
+        plt.show()
 
         return
 

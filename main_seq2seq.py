@@ -19,9 +19,9 @@ class Config:
     gpu = 0
     checkpoints = './checkpoints/'
     inverse = False
-    target = 'CPU_USAGE'
+    target = 'CPU_USAGE'  # 预测目标
     lradj = 'type1'  # 学习率的调整方式，默认为"type1"
-    loss_name = 'MSE'
+    loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
     save_path = './checkpoints/{}.pth'.format(model_name)  # 最优模型保存路径
 
@@ -38,7 +38,6 @@ print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
 # exp.train(setting)
 
 print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-# exp.test(setting)
 exp.test(setting, load=True)
 
 print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
