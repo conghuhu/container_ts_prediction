@@ -65,6 +65,7 @@ class EncoderDecoderWrapper(nn.Module):
         self.linear = nn.Linear(input_size, output_size)
 
     def __call__(self, xb, yb=None):
+        # xb shape: (batch_size, timeStep, feature_size)
         input_seq = xb
         encoder_output, encoder_hidden = self.encoder(input_seq)
         prev_hidden = encoder_hidden
