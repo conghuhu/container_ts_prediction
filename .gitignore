@@ -162,3 +162,5 @@ cython_debug/
 *.pth
 *.npy
 *.pt
+
+test.py
