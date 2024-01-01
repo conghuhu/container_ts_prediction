@@ -53,11 +53,11 @@ class Exp_Seq2Seq(Exp_Basic):
         pred_data_set = Dataset_Pred(
             args=args,
             data_path=args.data_path,
+            dataset_obj=train_data_set,
             flag="pred",
             size=[args.timestep, args.feature_size, args.pre_len],
             features=args.features,
             target=args.target,
-            scale_type=args.scale_type,
             inverse=args.inverse,
         )
         self.train_data_set = train_data_set
@@ -268,8 +268,8 @@ class Exp_Seq2Seq(Exp_Basic):
 
         self.model.eval()
 
-        true_show_data: np.ndarray
-        for i, (batch_x, batch_y) in enumerate(tqdm(pred_loader)):
+        for i, (batch_x, batch_y, queueId) in enumerate(tqdm(pred_loader)):
+            queueId = queueId.item()
             history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
             print(history_data.shape)
             pred, true = self._process_one_batch(pred_data, batch_x, batch_y)
@@ -284,42 +284,33 @@ class Exp_Seq2Seq(Exp_Basic):
             # 真实展示的数据
             true_show_data = np.concatenate([history_data[:, -1], true[:, -1]], axis=0)
             # true_show_data.shape [timestep+pre_len]
-            break
 
-        # 将预测结果导出到本地
-        # if args.features == 'MS' or args.features == 'S':
-        #     df = pd.DataFrame({'date': pre_data['date'], '{}'.format(args.target): pre_data[args.target],
-        #                        'forecast{}'.format(args.target): pre_data[args.target]})
-        #     df.to_csv('Interval-{}'.format(args.data_path), index=False)
-        # else:
-        #     df = pd.DataFrame(dict_of_lists)
-        #     new_df = pd.concat((pre_data, df), axis=1)
-        #     new_df.to_csv('Interval-{}'.format(args.data_path), index=False)
+            # 绘图
+            plt.figure()
+            if args.features == 'MS' or args.features == 'S':
+                # print("true_show_data: \n", true_show_data)
+                # print("pred data: \n", pred)
+                plt.plot(range(len(true_show_data)), true_show_data,
+                         label='True Values')
+                plt.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
+                         marker='o', label='Predicted Values')
+            else:
+                print('未实现多元预测多元的可视化')
+                return
+            # 添加图例
+            plt.legend()
+            plt.style.use('ggplot')
+            # 添加标题和轴标签
+            plt.title('Past vs Predicted Future Values, QUEUE_ID: {}'.format(queueId))
+            plt.xlabel('Time Point')
+            plt.ylabel(args.target)
+            # 在特定索引位置画一条直线
+            plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
+            # 显示图表
+            plt.savefig('./predict_imgs/{}_{}_forcast.png'.format(args.target, queueId))
+            plt.show()
 
-        # 绘图
-        plt.figure()
-        if args.features == 'MS' or args.features == 'S':
-            # print("true_show_data: \n", true_show_data)
-            # print("pred data: \n", pred)
-            plt.plot(range(len(true_show_data)), true_show_data,
-                     label='True Values')
-            plt.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
-                     marker='o', label='Predicted Values')
-        else:
-            print('未实现多元预测多元的可视化')
-            return
-        # 添加图例
-        plt.legend()
-        plt.style.use('ggplot')
-        # 添加标题和轴标签
-        plt.title('Past vs Predicted Future Values')
-        plt.xlabel('Time Point')
-        plt.ylabel(args.target)
-        # 在特定索引位置画一条直线
-        plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
-        # 显示图表
-        plt.savefig('./predict_imgs/{}_forcast.png'.format(args.target))
-        plt.show()
+            time.sleep(0.5)
 
     def _process_one_batch(self, dataset_object, batch_x, batch_y):
         batch_x = batch_x.to(self.device)
