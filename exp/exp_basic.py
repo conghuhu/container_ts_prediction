@@ -12,10 +12,6 @@ class Exp_Basic(object):
         self._load_data()
         print("模型已初始化, 耗时{}s".format(time.time() - start))
 
-    def _build_model(self):
-        raise NotImplementedError
-        return None
-
     def _acquire_device(self):
         if self.args.use_gpu and torch.cuda.is_available():
             device = torch.device('cuda:{}'.format(self.args.gpu))
@@ -24,6 +20,10 @@ class Exp_Basic(object):
             device = torch.device('cpu')
             print('Use CPU')
         return device
+
+    def _build_model(self):
+        raise NotImplementedError
+        return None
 
     def _load_data(self):
         pass
@@ -38,4 +38,7 @@ class Exp_Basic(object):
         pass
 
     def test(self):
+        pass
+
+    def predict(self):
         pass

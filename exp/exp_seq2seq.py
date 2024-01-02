@@ -250,11 +250,6 @@ class Exp_Seq2Seq(Exp_Basic):
 
         return
 
-    def calculate_mse(self, y_true, y_pred):
-        # 均方误差
-        mse = np.mean(np.abs(y_true - y_pred))
-        return mse
-
     def predict(self, setting, load=False, args=None):
         if args is None:
             args = self.args
@@ -265,6 +260,10 @@ class Exp_Seq2Seq(Exp_Basic):
             path = os.path.join(self.args.checkpoints, setting)
             best_model_path = path + '/' + 'checkpoint.pth'
             self.model.load_state_dict(torch.load(best_model_path))
+
+        folder_path = './predict_imgs/' + setting + '/'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
 
         self.model.eval()
 
@@ -306,7 +305,7 @@ class Exp_Seq2Seq(Exp_Basic):
             # 在特定索引位置画一条直线
             plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
             # 显示图表
-            plt.savefig('./predict_imgs/{}_{}_forcast.png'.format(args.target, queueId))
+            plt.savefig(folder_path + '{}_{}_forcast.png'.format(args.target, queueId))
             # 由于存在限流，只展示前25张图片
             if i < 25:
                 plt.show()

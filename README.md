@@ -6,13 +6,23 @@
 
 `./papers`：存放我参考的毕业论文
 
-`./data`: 数据集
+`./datasets`: 数据集
 
 `./checkpoints`: 存放训练好的模型
 
-`utils`: 存放一些工具函数
+`./cached`: 缓存训练、测试数据的tensor
 
-`models`: 存放模型的定义
+`./data`: dataloader，处理训练、测试数据的核心代码
+
+`./exp`: 定义各种模型的train、test、pred方法，模型的入口。如果引入新模型，在此增加`exp_xxx.py`即可
+
+`./predict_imgs`: 存放模型预测不同QUEUE_ID结果的图片
+
+`./results`: 存放模型metrics结果
+
+`./utils`: 存放一些工具函数
+
+`./models`: 存放模型的定义
 
 ## 代码说明
 
@@ -22,10 +32,24 @@
 
 `CNN_LSTM_Attention.ipynb`: 基于CNN+LSTM+Attention的多变量时序预测模型
 
+`main_seq2seq.py`: seq2seq模型训练、测试、预测入口类，直接运行即可
+
+## 新增模型流程
+
+1. 在`./models`下定义模型的`xxx.py`文件
+2. 在`./exp`下定义模型的`exp_xxx.py`文件，继承`exp.Exp_Basic`
+   类，实现`_build_model`、`_load_data`、`_get_data` 、`train`、`test`、`pred`、`vali`方法，可参考`exp/exp_seq2seq.py`。
+3. 新建`main_xxx.py`，参考`main_seq2seq.py`定义好参数。
+4. 训练模型：`python main_xxx.py --mode train`
+5. 测试模型：`python main_xxx.py --mode test`
+6. 预测模型：`python main_xxx.py --mode pred`
+
 ## 实验记录
+
 ### Seq2Seq多输出预测
 
 训练参数：
+
 ```python
 class Config:
     # data_path = './datasets/serverless/cached/queue_id_{}.csv'.format(36)

@@ -185,11 +185,6 @@ class Exp_CNN_LSTM(Exp_Basic):
 
         return
 
-    def calculate_mse(self, y_true, y_pred):
-        # 均方误差
-        mse = np.mean(np.abs(y_true - y_pred))
-        return mse
-
     def predict(self, setting, load=False, args=None):
         df = pd.read_csv(args.data_path)
         # 历史数据，仅供展示

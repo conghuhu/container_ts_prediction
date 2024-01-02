@@ -1,4 +1,12 @@
+import argparse
+
 from exp.exp_seq2seq import Exp_Seq2Seq
+
+parser = argparse.ArgumentParser(description='Seq2Seq time series Forecasting')
+
+parser.add_argument('--mode', type=str, default='all',
+                    help='mode of run, options: [all, train, test, pred]')
+args = parser.parse_args()
 
 
 class Config:
@@ -35,11 +43,14 @@ setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}'.format(config.model_name, config.fea
 
 exp = Exp_Seq2Seq(config)
 
-print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
-# exp.train(setting)
+if args.mode == 'all' or args.mode == 'train':
+    print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
+    exp.train(setting)
 
-print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-exp.test(setting, load=True)
+if args.mode == 'all' or args.mode == 'test':
+    print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    exp.test(setting, load=True)
 
-print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-exp.predict(setting, load=True)
+if args.mode == 'all' or args.mode == 'pred':
+    print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    exp.predict(setting, load=True)
