@@ -1,3 +1,5 @@
+import time
+
 from matplotlib import pyplot as plt
 
 
@@ -14,3 +16,10 @@ def plot_loss_data(data, loss_name):
     plt.legend()
 
     plt.show()
+
+
+def closePlots():
+    plt.clf()
+    plt.cla()
+    plt.close("all")
+    time.sleep(0.5)

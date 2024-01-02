@@ -14,7 +14,7 @@ from exp.exp_basic import Exp_Basic
 from models.seq2seq.en_dn_wrapper_net import EncoderDecoderWrapper
 from utils.losses import mape_loss, mase_loss, smape_loss
 from utils.metrics import metric
-from utils.plot_tools import plot_loss_data
+from utils.plot_tools import plot_loss_data, closePlots
 from utils.tools import EarlyStopping, adjust_learning_rate
 
 
@@ -271,7 +271,6 @@ class Exp_Seq2Seq(Exp_Basic):
         for i, (batch_x, batch_y, queueId) in enumerate(tqdm(pred_loader)):
             queueId = queueId.item()
             history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
-            print(history_data.shape)
             pred, true = self._process_one_batch(pred_data, batch_x, batch_y)
             # pred.shape [batchSize=1, pre_len, 1]
             pred = pred[0]
@@ -308,9 +307,11 @@ class Exp_Seq2Seq(Exp_Basic):
             plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
             # 显示图表
             plt.savefig('./predict_imgs/{}_{}_forcast.png'.format(args.target, queueId))
-            plt.show()
+            # 由于存在限流，只展示前25张图片
+            if i < 25:
+                plt.show()
 
-            time.sleep(0.5)
+            closePlots()
 
     def _process_one_batch(self, dataset_object, batch_x, batch_y):
         batch_x = batch_x.to(self.device)
