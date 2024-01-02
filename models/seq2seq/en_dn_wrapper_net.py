@@ -54,9 +54,10 @@ class AttentionDecoderCell(nn.Module):
 
 
 class EncoderDecoderWrapper(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size, num_layers, pred_len, window_size, teacher_forcing=0.3):
+    def __init__(self, input_size, output_size, hidden_size, num_layers, pred_len, window_size, teacher_forcing=0.3,
+                 bidirectional=False):
         super().__init__()
-        self.encoder = RNNEncoder(num_layers, input_size, window_size, hidden_size)
+        self.encoder = RNNEncoder(num_layers, input_size, window_size, hidden_size, bidirectional)
         self.decoder_cell = AttentionDecoderCell(input_size, output_size, window_size, hidden_size)
         self.output_size = output_size
         self.input_size = input_size

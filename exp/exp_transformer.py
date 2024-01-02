@@ -11,21 +11,21 @@ from tqdm import tqdm
 
 from data.data_loader import Dataset_Custom, Dataset_Pred
 from exp.exp_basic import Exp_Basic
-from models.seq2seq.en_dn_wrapper_net import EncoderDecoderWrapper
+from models.Transformer.transformer import Transformer
 from utils.losses import mape_loss, mase_loss, smape_loss
 from utils.metrics import metric, write_to_file
 from utils.plot_tools import plot_loss_data, closePlots
 from utils.tools import EarlyStopping, adjust_learning_rate
 
 
-class Exp_Seq2Seq(Exp_Basic):
+class Exp_Transformer(Exp_Basic):
     def __init__(self, args):
-        super(Exp_Seq2Seq, self).__init__(args)
+        super(Exp_Transformer, self).__init__(args)
 
     def _build_model(self):
         args = self.args
-        model = EncoderDecoderWrapper(args.feature_size, args.output_size, args.hidden_size, args.num_layers,
-                                      args.pre_len, args.timestep, args.bidirectional)
+        model = Transformer(args)
+
         return model
 
     def _load_data(self):
