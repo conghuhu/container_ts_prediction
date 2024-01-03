@@ -119,6 +119,7 @@ class Exp_Seq2Seq(Exp_Basic):
         if not os.path.exists(path):
             os.makedirs(path)
 
+        train_start_time = time.time()
         time_now = time.time()
         train_steps = len(train_loader)
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
@@ -126,7 +127,8 @@ class Exp_Seq2Seq(Exp_Basic):
         model_optim = self._select_optimizer()
         loss_function = self._select_loss_function()
 
-        results_loss = []
+        results_train_loss = []
+        results_test_loss = []
 
         for epoch in range(self.args.epochs):
             iter_count = 0
@@ -152,7 +154,7 @@ class Exp_Seq2Seq(Exp_Basic):
                 loss = loss_function(pred, true)
                 train_loss.append(loss.item())
 
-                if (i + 1) % 100 == 0:
+                if (i + 1) % 1000 == 0:
                     print("\niters: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     speed = (time.time() - time_now) / iter_count
                     left_time = speed * ((self.args.epochs - epoch) * train_steps - i)
@@ -167,7 +169,8 @@ class Exp_Seq2Seq(Exp_Basic):
             train_loss = np.average(train_loss)
             test_loss = self.vali(test_data_set, test_loader, loss_function)
 
-            results_loss.append(train_loss)
+            results_train_loss.append(train_loss)
+            results_test_loss.append(test_loss)
 
             print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Test Loss: {3:.7f}".format(
                 epoch + 1, train_steps, train_loss, test_loss))
@@ -183,7 +186,10 @@ class Exp_Seq2Seq(Exp_Basic):
             if hasattr(torch.cuda, 'empty_cache'):
                 torch.cuda.empty_cache()
 
-        plot_loss_data(results_loss, self.args.loss_name)
+        print("Finsh train, total time is: {}".format(time.time() - train_start_time))
+
+        plot_loss_data(results_train_loss, self.args.loss_name, self.args.setting, 'train')
+        plot_loss_data(results_test_loss, self.args.loss_name, self.args.setting, 'test')
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))

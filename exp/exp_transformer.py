@@ -126,7 +126,8 @@ class Exp_Transformer(Exp_Basic):
         model_optim = self._select_optimizer()
         loss_function = self._select_loss_function()
 
-        results_loss = []
+        results_train_loss = []
+        results_test_loss = []
 
         for epoch in range(self.args.epochs):
             iter_count = 0
@@ -167,7 +168,8 @@ class Exp_Transformer(Exp_Basic):
             train_loss = np.average(train_loss)
             test_loss = self.vali(test_data_set, test_loader, loss_function)
 
-            results_loss.append(train_loss)
+            results_train_loss.append(train_loss)
+            results_test_loss.append(test_loss)
 
             print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Test Loss: {3:.7f}".format(
                 epoch + 1, train_steps, train_loss, test_loss))
@@ -183,7 +185,8 @@ class Exp_Transformer(Exp_Basic):
             if hasattr(torch.cuda, 'empty_cache'):
                 torch.cuda.empty_cache()
 
-        plot_loss_data(results_loss, self.args.loss_name)
+        plot_loss_data(results_train_loss, self.args.loss_name, self.args.setting, 'train')
+        plot_loss_data(results_test_loss, self.args.loss_name, self.args.setting, 'test')
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))

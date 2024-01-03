@@ -6,6 +6,7 @@ parser = argparse.ArgumentParser(description='Seq2Seq time series Forecasting')
 
 parser.add_argument('--mode', type=str, default='all',
                     help='mode of run, options: [all, train, test, pred]')
+parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='checkpoints path')
 args = parser.parse_args()
 
 
@@ -18,7 +19,7 @@ class Config:
     data_path = './datasets/serverless/data.csv'
     features = 'MS'  # 三个选项M，MS，S。分别是多元预测多元，多元预测单元，单元预测单元
     target = 'CPU_USAGE'  # 预测目标
-    checkpoints = './checkpoints/'
+    checkpoints = args.checkpoints
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
@@ -30,12 +31,12 @@ class Config:
 
     # model define
     hidden_size = 256  # 隐层大小
-    num_layers = 2  # RNN的层数
+    num_layers = 1  # RNN的层数
     bidirectional = True
 
     # optimization
     epochs = 50  # 迭代轮数
-    batch_size = 32  # 批次大小
+    batch_size = 16  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
     loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
@@ -49,11 +50,15 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}'.format(config.model_name, config.features,
-                                                                          config.timestep, config.feature_size,
-                                                                          config.output_size,
-                                                                          config.pre_len, config.epochs,
-                                                                          config.learning_rate, config.batch_size)
+setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_bi{}'.format(config.model_name, config.features,
+                                                                                    config.timestep,
+                                                                                    config.feature_size,
+                                                                                    config.output_size,
+                                                                                    config.pre_len, config.epochs,
+                                                                                    config.learning_rate,
+                                                                                    config.batch_size,
+                                                                                    config.num_layers,
+                                                                                    config.bidirectional)
 
 config.setting = setting
 exp = Exp_Seq2Seq(config)
