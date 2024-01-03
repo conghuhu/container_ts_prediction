@@ -17,6 +17,7 @@ class Config:
     feature_size = 7  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
     hidden_size = 256  # 隐层大小
     output_size = 7  # 预测变量数
+    label_len = 64  # start token length
     pre_len = 24  # 预测长度
     num_layers = 1  # RNN的层数
     epochs = 50  # 迭代轮数

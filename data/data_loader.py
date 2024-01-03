@@ -6,13 +6,16 @@ import torch
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from torch.utils.data import Dataset
 
+from utils.timefeatures import time_features
 from utils.tools import csv_to_torch, torch_to_csv
 
 
 class Dataset_Custom(Dataset):
     def __init__(self, args, data_path, size, flag='train',
                  features='S',
-                 target='CPU_USAGE', ratio=0.8, scale=True, scale_type='standard', inverse=False, cols=None):
+                 target='CPU_USAGE', ratio=0.8, scale=True, scale_type='standard', inverse=False, cols=None,
+                 embed='timeF',
+                 freq='min'):
         # size [timestep, pred_len]
         # info
         self.timestep = size[0]
@@ -32,6 +35,10 @@ class Dataset_Custom(Dataset):
         assert scale_type in ['standard', 'minmax']
         self.scale_type = scale_type
         self.args = args
+
+        timeenc = 0 if embed != 'timeF' else 1
+        self.timeenc = timeenc
+        self.freq = freq
         self.__read_data__()
 
     def __read_data__(self):
@@ -46,26 +53,43 @@ class Dataset_Custom(Dataset):
             self.scaler_queueId = MinMaxScaler()
         # 读取数据并预处理
         # 默认第一列时间戳为index
-        df_raw = pd.read_csv(self.data_path, index_col=0)
-        print("读取到本地数据： \n", df_raw.head())
+        data_df = pd.read_csv(self.data_path, index_col=0)
+        print("读取到本地数据： \n", data_df.head())
+
+        # 时间特征编码
+        df_stamp = pd.DataFrame(data_df.index, columns=['timestamp'])
+        df_stamp.rename(columns={'timestamp': 'date'}, inplace=True)
+        df_stamp['date'] = pd.to_datetime(df_stamp.date, unit='ms')
+        # print("df_stamp: \n", df_stamp)
+        if self.timeenc == 0:
+            df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
+            df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
+            df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
+            df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
+            data_stamp = df_stamp.drop(labels=['date'], axis=1).values
+            # data_stamp shape: [len, 4]
+        elif self.timeenc == 1:
+            data_stamp = time_features(pd.to_datetime(df_stamp['date'].values), freq=self.freq)
+            data_stamp = data_stamp.transpose(1, 0)
+            # data_stamp shape: [len, 5]
 
         '''
-        df_raw.columns: ['timestamp(index)', target feature, ...(other features)]
+        data_df.columns: ['timestamp(index)', target feature, ...(other features)]
         '''
-        # cols = list(df_raw.columns);
+        # cols = list(data_df.columns);
         if self.cols:
             cols = self.cols.copy()
             cols.remove(self.target)
         else:
-            cols = list(df_raw.columns)
+            cols = list(data_df.columns)
             cols.remove(self.target)
-        df_raw = df_raw[[self.target] + cols]
+        data_df = data_df[[self.target] + cols]
 
         if self.features == 'S':
             # 单元预测，只需要一个元
-            df_data = df_raw[[self.target]]
+            df_data = data_df[[self.target]]
         else:
-            df_data = df_raw
+            df_data = data_df
 
         if self.scale:
             data: np.ndarray = self.scaler_model.fit_transform(df_data.values)
@@ -74,11 +98,15 @@ class Dataset_Custom(Dataset):
         else:
             data: np.ndarray = df_data.values
 
+        cache_tensor_path = os.path.join('./cached/', self.args.setting)
+        if not os.path.exists(cache_tensor_path):
+            os.makedirs(cache_tensor_path)
+
         # 检查本地结果文件是否存在，如果存在直接返回
-        x_train_cache_tensor_path = './cached/x_train_{}.pt'.format(self.args.model_name)
-        y_train_cache_tensor_path = './cached/y_train_{}.pt'.format(self.args.model_name)
-        x_test_cache_tensor_path = './cached/x_test_{}.pt'.format(self.args.model_name)
-        y_test_cache_tensor_path = './cached/y_test_{}.pt'.format(self.args.model_name)
+        x_train_cache_tensor_path = cache_tensor_path + '/x_train_{}.pt'.format(self.args.model_name)
+        y_train_cache_tensor_path = cache_tensor_path + '/y_train_{}.pt'.format(self.args.model_name)
+        x_test_cache_tensor_path = cache_tensor_path + '/x_test_{}.pt'.format(self.args.model_name)
+        y_test_cache_tensor_path = cache_tensor_path + '/y_test_{}.pt'.format(self.args.model_name)
         if self.flag == 'train':
             if os.path.exists(x_train_cache_tensor_path) and os.path.exists(y_train_cache_tensor_path):
                 self.data_x = csv_to_torch(x_train_cache_tensor_path)
@@ -109,6 +137,7 @@ class Dataset_Custom(Dataset):
             end = raw['ranges_end']
             # 划分训练集和测试集
             x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor = self.__split_data__(data[start:end + 1],
+
                                                                                                self.timestep,
                                                                                                self.feature_size,
                                                                                                self.pred_len)
@@ -148,7 +177,7 @@ class Dataset_Custom(Dataset):
         torch_to_csv(y_test_tensor, y_test_cache_tensor_path)
 
     def __split_data__(self, data: np.ndarray, timestep: int, feature_size: int,
-                       output_size: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+                       pred_len: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         形成训练数据，例如12345789 12-3456789
         :param data: 数据
@@ -158,13 +187,13 @@ class Dataset_Custom(Dataset):
         """
         dataX = []  # 保存X
         dataY = []  # 保存Y
-        # print(data.shape, timestep, feature_size, output_size)
+        # print(data.shape, timestep, feature_size, pred_len)
 
         # 将整个窗口的数据保存到X中，将未来一天保存到Y中
-        for index in range(len(data) - timestep - output_size + 1):
+        for index in range(len(data) - timestep - pred_len + 1):
             # 第一列是Target, CPU_USAGE
             dataX.append(data[index: index + timestep])
-            dataY.append(data[index + timestep: index + timestep + output_size][:, 0].tolist())
+            dataY.append(data[index + timestep: index + timestep + pred_len][:, 0].tolist())
 
         dataX = np.array(dataX)
         dataY = np.array(dataY)
@@ -174,10 +203,10 @@ class Dataset_Custom(Dataset):
 
         # 划分训练集、测试集
         x_train = dataX[: train_size, :].reshape(-1, timestep, feature_size)
-        y_train = dataY[: train_size].reshape(-1, output_size, 1)
+        y_train = dataY[: train_size].reshape(-1, pred_len, 1)
 
         x_test = dataX[train_size:, :].reshape(-1, timestep, feature_size)
-        y_test = dataY[train_size:].reshape(-1, output_size, 1)
+        y_test = dataY[train_size:].reshape(-1, pred_len, 1)
 
         # 将数据转为tensor
         x_train_tensor: torch.Tensor = torch.from_numpy(x_train).to(torch.float32)
@@ -231,8 +260,13 @@ class Dataset_Pred(Dataset):
         queueIds: np.ndarray = queueIds_df['QUEUE_ID'].values
         self.queueIds_df = queueIds_df
         self.queueIds = queueIds
-        self.x_test = csv_to_torch('./cached/x_test_{}.pt'.format(self.args.model_name))
-        self.y_test = csv_to_torch('./cached/y_test_{}.pt'.format(self.args.model_name))
+
+        cache_tensor_path = os.path.join('./cached/', self.args.setting)
+        if not os.path.exists(cache_tensor_path):
+            os.makedirs(cache_tensor_path)
+
+        self.x_test = csv_to_torch(cache_tensor_path + '/x_test_{}.pt'.format(self.args.model_name))
+        self.y_test = csv_to_torch(cache_tensor_path + '/y_test_{}.pt'.format(self.args.model_name))
 
         print("x_test shape: ", self.x_test.shape)
         print("y_test shape: ", self.y_test.shape)
@@ -241,8 +275,6 @@ class Dataset_Pred(Dataset):
         self.data_y = self.y_test
 
     def __getitem__(self, index):
-        # n = self.__len__()
-        # return self.data_x[n - 1], self.data_y[n - 1]
         raw = self.queueIds_df.iloc[index]
         start = raw['test_start']
         end = raw['test_end']
