@@ -6,7 +6,6 @@ import torch
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from torch.utils.data import Dataset
 
-from utils.timefeatures import time_features
 from utils.tools import csv_to_torch, torch_to_csv
 
 
@@ -44,34 +43,32 @@ class Dataset_Custom(Dataset):
     def __read_data__(self):
         # 归一化器
         if self.scale_type == 'standard':
-            self.scaler = StandardScaler()
-            self.scaler_model = StandardScaler()
-            self.scaler_queueId = StandardScaler()
+            self.scaler_y = StandardScaler()
+            self.scaler_x = StandardScaler()
         elif self.scale_type == 'minmax':
-            self.scaler = MinMaxScaler()
-            self.scaler_model = MinMaxScaler()
-            self.scaler_queueId = MinMaxScaler()
+            self.scaler_y = MinMaxScaler()
+            self.scaler_x = MinMaxScaler()
         # 读取数据并预处理
         # 默认第一列时间戳为index
-        data_df = pd.read_csv(self.data_path, index_col=0)
+        data_df = pd.read_csv(self.data_path)
         print("读取到本地数据： \n", data_df.head())
 
         # 时间特征编码
-        df_stamp = pd.DataFrame(data_df.index, columns=['timestamp'])
-        df_stamp.rename(columns={'timestamp': 'date'}, inplace=True)
-        df_stamp['date'] = pd.to_datetime(df_stamp.date, unit='ms')
+        # df_stamp = pd.DataFrame(data_df.index, columns=['timestamp'])
+        # df_stamp.rename(columns={'timestamp': 'date'}, inplace=True)
+        # df_stamp['date'] = pd.to_datetime(df_stamp.date, unit='ms')
         # print("df_stamp: \n", df_stamp)
-        if self.timeenc == 0:
-            df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
-            df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
-            df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
-            df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
-            data_stamp = df_stamp.drop(labels=['date'], axis=1).values
-            # data_stamp shape: [len, 4]
-        elif self.timeenc == 1:
-            data_stamp = time_features(pd.to_datetime(df_stamp['date'].values), freq=self.freq)
-            data_stamp = data_stamp.transpose(1, 0)
-            # data_stamp shape: [len, 5]
+        # if self.timeenc == 0:
+        #     df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
+        #     df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
+        #     df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
+        #     df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
+        #     data_stamp = df_stamp.drop(labels=['date'], axis=1).values
+        #     # data_stamp shape: [len, 4]
+        # elif self.timeenc == 1:
+        #     data_stamp = time_features(pd.to_datetime(df_stamp['date'].values), freq=self.freq)
+        #     data_stamp = data_stamp.transpose(1, 0)
+        #     # data_stamp shape: [len, 5]
 
         '''
         data_df.columns: ['timestamp(index)', target feature, ...(other features)]
@@ -83,7 +80,8 @@ class Dataset_Custom(Dataset):
         else:
             cols = list(data_df.columns)
             cols.remove(self.target)
-        data_df = data_df[[self.target] + cols]
+            cols.remove('QUEUE_ID')
+        data_df = data_df[[self.target] + cols + ['QUEUE_ID']]
 
         if self.features == 'S':
             # 单元预测，只需要一个元
@@ -92,9 +90,8 @@ class Dataset_Custom(Dataset):
             df_data = data_df
 
         if self.scale:
-            data: np.ndarray = self.scaler_model.fit_transform(df_data.values)
-            self.scaler.fit_transform(np.array(df_data[self.target]).reshape(-1, 1))
-            self.scaler_queueId.fit_transform(np.array(df_data['QUEUE_ID']).reshape(-1, 1))
+            data: np.ndarray = self.scaler_x.fit_transform(df_data.values)
+            self.scaler_y.fit_transform(np.array(df_data[self.target]).reshape(-1, 1))
         else:
             data: np.ndarray = df_data.values
 
@@ -223,10 +220,10 @@ class Dataset_Custom(Dataset):
         return len(self.data_x)
 
     def inverse_transform(self, data):
-        return self.scaler_model.inverse_transform(data)
+        return self.scaler_x.inverse_transform(data)
 
     def inverse_transform_y(self, data):
-        return self.scaler.inverse_transform(data)
+        return self.scaler_y.inverse_transform(data)
 
     def inverse_transform_queueId(self, data):
         return self.scaler_queueId.inverse_transform(data)

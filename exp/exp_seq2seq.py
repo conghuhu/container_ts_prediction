@@ -66,7 +66,7 @@ class Exp_Seq2Seq(Exp_Basic):
 
         self.train_loader = DataLoader(self.train_data_set,
                                        self.args.batch_size,
-                                       shuffle=False)
+                                       shuffle=True)
         self.test_loader = DataLoader(self.test_data_set,
                                       self.args.batch_size,
                                       shuffle=False)

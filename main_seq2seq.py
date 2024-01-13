@@ -25,7 +25,7 @@ class Config:
     # forecasting task
     timestep = 126  # 时间步长，就是利用多少时间窗口
     output_size = 1  # 只预测CPU
-    feature_size = 7  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
+    feature_size = 8  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
     pre_len = 24  # 预测长度
     inverse = False
 
