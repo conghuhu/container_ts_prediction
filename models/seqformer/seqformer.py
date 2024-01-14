@@ -1,6 +1,111 @@
 from typing import Optional
+import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
+import math
+
+
+class ConvolutionModule(nn.Module):
+    def __init__(self,
+                 channels: int,
+                 kernel_size: int = 3,
+                 activation: nn.Module = nn.ReLU(),
+                 norm: str = "layer_norm",
+                 bias: bool = True,
+                 stride: int = 1,
+                 dropout: float = 0.1) -> None:
+        super().__init__()
+        self.bias = bias
+        self.channels = channels
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.norm = nn.LayerNorm(channels) if norm == "layer_norm" else nn.BatchNorm1d(channels)
+        self.stride = stride
+
+        self.pointwise_conv1 = nn.Conv1d(
+            channels,
+            2 * channels,
+            kernel_size=1,
+            stride=1,
+            padding=0,
+            bias=bias
+        )
+
+        assert (kernel_size - 1) % 2 == 0
+        padding = (kernel_size - 1) // 2
+
+        self.depthwise_conv = nn.Conv1d(
+            channels,
+            channels,
+            kernel_size,
+            stride=1,
+            padding=padding,
+            groups=channels,
+            bias=bias
+        )
+
+        self.pointwise_conv2 = nn.Conv1d(
+            channels,
+            channels,
+            kernel_size=1,
+            stride=1,
+            padding=0,
+            bias=bias
+        )
+
+        self.dropout = nn.Dropout(dropout)
+
+        self._init_weights()
+
+    def _init_weights(self):
+        pw_max = self.channels ** -0.5
+        dw_max = self.kernel_size ** -0.5
+        torch.nn.init.uniform_(self.pointwise_conv1.weight.data, -pw_max, pw_max)
+        torch.nn.init.uniform_(self.depthwise_conv.weight.data, -dw_max, dw_max)
+        torch.nn.init.uniform_(self.pointwise_conv2.weight.data, -pw_max, pw_max)
+        if self.bias:
+            torch.nn.init.uniform_(self.pointwise_conv1.bias.data, -pw_max, pw_max)
+            torch.nn.init.uniform_(self.depthwise_conv.bias.data, -dw_max, dw_max)
+            torch.nn.init.uniform_(self.pointwise_conv2.bias.data, -pw_max, pw_max)
+
+    def forward(self, x: torch.Tensor):
+        shortcut = x
+
+        # B,L,D -> B,D,L  D is channel
+        x = x.transpose(1, 2)
+
+        x = self.pointwise_conv1(x)
+        x = nn.functional.glu(x, dim=1)
+
+        x = self.depthwise_conv(x)
+
+        # layer norm
+        x = x.transpose(1, 2)
+        x = self.activation(self.norm(x))
+        x = x.transpose(1, 2)
+
+        x = self.pointwise_conv2(x)
+        x = self.dropout(x)
+
+        # B,L,D
+        return shortcut + x.transpose(1, 2)
+
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, hidden_size, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=0.1)
+
+        pe = torch.zeros(max_len, hidden_size)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, hidden_size, 2).float() * (-math.log(10000.0) / hidden_size))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(1)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        return self.dropout(self.pe[:x.size(0), :, :])
 
 
 class SelfAttentionLayer(nn.Module):
@@ -182,6 +287,7 @@ class Encoder(nn.Module):
         self.num_layers = num_layers
         self.transformer_self_attention_layers = nn.ModuleList()
         self.transformer_ffn_layers = nn.ModuleList()
+        self.conv_layers = nn.ModuleList()
 
         for _ in range(self.num_layers):
             self.transformer_self_attention_layers.append(
@@ -190,6 +296,14 @@ class Encoder(nn.Module):
                     nhead=nhead,
                     dropout=dropout,
                     normalize_before=pre_norm,
+                )
+            )
+
+            self.conv_layers.append(
+                ConvolutionModule(
+                    channels=d_model,
+                    kernel_size=3,
+                    stride=1
                 )
             )
 
@@ -202,17 +316,21 @@ class Encoder(nn.Module):
                 )
             )
 
-    def forward(self, output):
+    def forward(self, output, query_pos):
         for i in range(self.num_layers):
-            output = self.transformer_self_attention_layers[i](
+            output_att = self.transformer_self_attention_layers[i](
                 output,
                 tgt_mask=None,
                 tgt_key_padding_mask=None,
-                query_pos=None
+                query_pos=query_pos
             )
 
+            output = output.transpose(1, 0)
+            output = self.conv_layers[i](output)
+            output = output.transpose(1, 0)
+
             output = self.transformer_ffn_layers[i](
-                output
+                output_att + output
             )
 
         return output
@@ -255,20 +373,20 @@ class Decoder(nn.Module):
                 )
             )
 
-    def forward(self, output, src):
+    def forward(self, output, src, pos, query_pos):
         for i in range(self.num_layers):
             output = self.transformer_cross_attention_layers[i](
                 output, src,
                 memory_mask=None,
                 memory_key_padding_mask=None,
-                pos=None, query_pos=None
+                pos=pos, query_pos=query_pos
             )
 
             output = self.transformer_self_attention_layers[i](
                 output,
                 tgt_mask=None,
                 tgt_key_padding_mask=None,
-                query_pos=None
+                query_pos=query_pos
             )
 
             output = self.transformer_ffn_layers[i](
@@ -279,11 +397,18 @@ class Decoder(nn.Module):
 
 
 class SeqFormer(nn.Module):
-    def __init__(self, feature_size, hidden_size, num_layers, num_heads, ffn_hidden_size, dropout, pre_norm, output_size, pre_len):
+    def __init__(self, timestep, feature_size, hidden_size, num_layers, num_heads, ffn_hidden_size, dropout, pre_norm, output_size, pre_len):
 
         super(SeqFormer, self).__init__()
 
-        self.fc_input = nn.Linear(feature_size, hidden_size)
+        self.fc_all = nn.Linear(feature_size, hidden_size)
+        self.fc_cpu = nn.Linear(1, hidden_size)
+        self.fc_fuse = nn.Linear(hidden_size, hidden_size)
+        # self.fc_c = nn.Linear(1, hidden_size)
+        # self.fc_o1 = nn.Linear(6, hidden_size)
+        # self.fc_o2 = nn.Linear(hidden_size, hidden_size)
+        # self.fc_o3 = nn.Linear(hidden_size, 1)
+        # self.relu = F.relu
 
         self.encoder = Encoder(
             num_layers=num_layers,
@@ -293,8 +418,10 @@ class SeqFormer(nn.Module):
             dropout=dropout,
             pre_norm=pre_norm
         )
+        self.x_pos = PositionalEncoding(hidden_size, max_len=timestep)
 
         self.output = nn.Embedding(pre_len, hidden_size)
+        self.output_pos = nn.Embedding(pre_len, hidden_size)
 
         self.decoder = Decoder(
             num_layers=num_layers,
@@ -312,28 +439,38 @@ class SeqFormer(nn.Module):
     def forward(self, x):
         # x.shape(batch_size, timeStep, feature_size)
         batch_size = x.shape[0]
+        # x_c = x[:, :, 0].unsqueeze(-1)
+        # x_o = x[:, :, 1:]
+        # x_c = self.fc_c(x_c)
+        # x_o = self.fc_o1(x_o)
+        # x_o = torch.sigmoid(self.fc_o3(self.relu(self.fc_o2(x_c + x_o))))
+        # x = torch.mul(x_c,x_o)
+
         # timeStep, batch_size, feature_size
         x = x.transpose(1, 0)
 
         # timeStep, batch_size, hidden_size
-        x = self.fc_input(x)
+        x = self.fc_fuse(self.fc_cpu(x[:, :, 0].unsqueeze(-1))+self.fc_all(x))
+        # x = self.fc_input(x)
+        x_pos = self.x_pos(x)
 
         # timeStep, batch_size, hidden_size
-        x = self.encoder(x)
+        x = self.encoder(x, x_pos)
 
         # output_size, batch_size, hidden_size
         output = self.output.weight.unsqueeze(1).repeat(1, batch_size, 1)
+        output_pos = self.output_pos.weight.unsqueeze(1).repeat(1, batch_size, 1)
 
-        # output_size, batch_size, hidden_size
-        output = self.decoder(output, x)
+        # pre_len, batch_size, hidden_size
+        output = self.decoder(output, x, x_pos, output_pos)
 
-        # output_size, batch_size, hidden_size
+        # pre_len, batch_size, hidden_size
         output = self.decoder_norm(output)
 
-        # output_size, batch_size, output_size
+        # pre_len, batch_size, output_size
         output = self.fc_output(output)
 
-        # batch_size, output_size, output_size
-        output = output.transpose(1,0)
+        # batch_size, pre_len, output_size
+        output = output.transpose(1, 0)
 
         return output

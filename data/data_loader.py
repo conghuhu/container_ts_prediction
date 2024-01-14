@@ -179,7 +179,7 @@ class Dataset_Custom(Dataset):
         torch_to_csv(y_test_tensor, y_test_cache_tensor_path)
 
     def __split_data__(self, data: np.ndarray, timestep: int, feature_size: int,
-                       pred_len: int) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
+                       pred_len: int):
         """
         形成训练数据，例如12345789 12-3456789
         :param data: 数据

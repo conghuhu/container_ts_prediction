@@ -24,12 +24,22 @@ class Exp_SeqFormer(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = SeqFormer(args.feature_size, args.hidden_size, args.num_layers, args.num_heads, args.ffn_hidden_size, args.dropout, args.pre_norm, args.output_size, args.pre_len)
+        model = SeqFormer(args.timestep, args.feature_size, args.hidden_size, args.num_layers, args.num_heads, args.ffn_hidden_size, args.dropout, args.pre_norm, args.output_size, args.pre_len)
 
         return model
 
     def _load_data(self):
         args = self.args
+        all_data_set = Dataset_Custom(
+            args=args,
+            data_path=args.data_path,
+            flag="all",
+            size=[args.timestep, args.feature_size, args.pre_len],
+            features=args.features,
+            target=args.target,
+            scale_type=args.scale_type,
+            inverse=args.inverse,
+        )
         train_data_set = Dataset_Custom(
             args=args,
             data_path=args.data_path,
@@ -60,13 +70,17 @@ class Exp_SeqFormer(Exp_Basic):
             target=args.target,
             inverse=args.inverse,
         )
+        self.all_data_set = all_data_set
         self.train_data_set = train_data_set
         self.test_data_set = test_data_set
         self.pred_data_set = pred_data_set
 
+        self.all_loader = DataLoader(self.all_data_set,
+                                     self.args.batch_size,
+                                     shuffle=True)
         self.train_loader = DataLoader(self.train_data_set,
                                        self.args.batch_size,
-                                       shuffle=False)
+                                       shuffle=True)
         self.test_loader = DataLoader(self.test_data_set,
                                       self.args.batch_size,
                                       shuffle=False)
@@ -80,11 +94,13 @@ class Exp_SeqFormer(Exp_Basic):
             return self.train_data_set, self.train_loader
         elif flag == 'test':
             return self.test_data_set, self.test_loader
+        elif flag == 'all':
+            return self.all_data_set, self.all_loader
         else:
             return self.pred_data_set, self.pred_loader
 
     def _select_optimizer(self):
-        model_optim = optim.AdamW(self.model.parameters(), lr=self.args.learning_rate)
+        model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
         return model_optim
 
     def _select_loss_function(self):
@@ -112,7 +128,7 @@ class Exp_SeqFormer(Exp_Basic):
         return total_loss
 
     def train(self, setting):
-        train_data_set, train_loader = self._get_data(flag='train')
+        train_data_set, train_loader = self._get_data(flag='all')
         test_data_set, test_loader = self._get_data(flag='test')
 
         path = os.path.join(self.args.checkpoints, setting)
@@ -139,21 +155,21 @@ class Exp_SeqFormer(Exp_Basic):
                 iter_count += 1
 
                 model_optim.zero_grad()
-                if i == 0:
-                    print("batch_x shape: ", batch_x.shape)
-                    print("batch_y shape: ", batch_y.shape)
+                # if i == 0:
+                #     print("batch_x shape: ", batch_x.shape)
+                #     print("batch_y shape: ", batch_y.shape)
                 # batch_x shape: [batch_size, timestep, feature_size]
                 # batch_y shape: [batch_size, pred_len, 1]
                 pred, true = self._process_one_batch(train_data_set, batch_x, batch_y)
-                if i == 0:
-                    print("pred shape: ", pred.shape)
-                    print("true shape: ", true.shape)
+                # if i == 0:
+                #     print("pred shape: ", pred.shape)
+                #     print("true shape: ", true.shape)
                 # pred shape: [batch_size, pred_len, 1]
                 # true shape: [batch_size, pred_len, 1]
                 loss = loss_function(pred, true)
                 train_loss.append(loss.item())
 
-                if (i + 1) % 100 == 0:
+                if (i + 1) % 1000 == 0:
                     print("\niters: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     speed = (time.time() - time_now) / iter_count
                     left_time = speed * ((self.args.epochs - epoch) * train_steps - i)

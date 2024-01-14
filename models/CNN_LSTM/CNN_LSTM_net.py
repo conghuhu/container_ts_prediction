@@ -42,7 +42,7 @@ class CNN_LSTM_Attention(nn.Module):
         else:
             h_0, c_0 = hidden
 
-        output = output.transpose(1, 2)  # batch_size, timestep, feature_size,
+        output = output.transpose(1, 2)  # batch_size, feature_size, timestep
 
         # LSTM运算
         output, (h_0, c_0) = self.lstm(output, (h_0, c_0))  # size(batchSize, seq_len, D*hidden_size)

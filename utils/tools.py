@@ -14,7 +14,7 @@ def adjust_learning_rate(optimizer, epoch, args):
             10: 5e-7, 15: 1e-7, 20: 5e-8
         }
     elif args.lradj == "cosine":
-        lr_adjust = {epoch: args.learning_rate / 2 * (1 + math.cos(epoch / args.train_epochs * math.pi))}
+        lr_adjust = {epoch: args.learning_rate / 2 * (1 + math.cos(epoch / args.epochs * math.pi))}
     if epoch in lr_adjust.keys():
         lr = lr_adjust[epoch]
         for param_group in optimizer.param_groups:
