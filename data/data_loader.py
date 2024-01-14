@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import torch
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from torch import Tensor
 from torch.utils.data import Dataset
 
 from utils.tools import csv_to_torch, torch_to_csv
@@ -21,7 +22,7 @@ class Dataset_Custom(Dataset):
         self.feature_size = size[1]
         self.pred_len = size[2]
         # init
-        assert flag in ['train', 'test']
+        assert flag in ['train', 'test', 'all']
         self.flag = flag
 
         self.features = features
@@ -51,7 +52,7 @@ class Dataset_Custom(Dataset):
         # 读取数据并预处理
         # 默认第一列时间戳为index
         data_df = pd.read_csv(self.data_path)
-        print("读取到本地数据： \n", data_df.head())
+        print("读取到本地csv数据： \n", data_df.head())
 
         # 时间特征编码
         # df_stamp = pd.DataFrame(data_df.index, columns=['timestamp'])
@@ -104,7 +105,7 @@ class Dataset_Custom(Dataset):
         y_train_cache_tensor_path = cache_tensor_path + '/y_train_{}.pt'.format(self.args.model_name)
         x_test_cache_tensor_path = cache_tensor_path + '/x_test_{}.pt'.format(self.args.model_name)
         y_test_cache_tensor_path = cache_tensor_path + '/y_test_{}.pt'.format(self.args.model_name)
-        if self.flag == 'train':
+        if self.flag == 'train' or self.flag == 'all':
             if os.path.exists(x_train_cache_tensor_path) and os.path.exists(y_train_cache_tensor_path):
                 self.data_x = csv_to_torch(x_train_cache_tensor_path)
                 self.data_y = csv_to_torch(y_train_cache_tensor_path)
@@ -133,13 +134,17 @@ class Dataset_Custom(Dataset):
             start = raw['ranges_start']
             end = raw['ranges_end']
             # 划分训练集和测试集
-            x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor = self.__split_data__(data[start:end + 1],
-
-                                                                                               self.timestep,
-                                                                                               self.feature_size,
-                                                                                               self.pred_len)
-            x_train_tensor_list.append(x_train_tensor)
-            y_train_tensor_list.append(y_train_tensor)
+            x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor, x_all_tensor, y_all_tensor = self.__split_data__(
+                data[start:end + 1],
+                self.timestep,
+                self.feature_size,
+                self.pred_len)
+            if self.flag == 'all':
+                x_train_tensor_list.append(x_all_tensor)
+                y_train_tensor_list.append(y_all_tensor)
+            else:
+                x_train_tensor_list.append(x_train_tensor)
+                y_train_tensor_list.append(y_train_tensor)
             x_test_tensor_list.append(x_test_tensor)
             y_test_tensor_list.append(y_test_tensor)
 
@@ -161,7 +166,7 @@ class Dataset_Custom(Dataset):
         queueIds_df['test_end'] = test_ends
         queueIds_df.to_csv('./datasets/serverless/q_ids.csv', encoding="utf-8", index=False)
 
-        if self.flag == 'train':
+        if self.flag == 'train' or self.flag == 'all':
             self.data_x = x_train_tensor
             self.data_y = y_train_tensor
         else:
@@ -174,7 +179,7 @@ class Dataset_Custom(Dataset):
         torch_to_csv(y_test_tensor, y_test_cache_tensor_path)
 
     def __split_data__(self, data: np.ndarray, timestep: int, feature_size: int,
-                       pred_len: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+                       pred_len: int) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
         """
         形成训练数据，例如12345789 12-3456789
         :param data: 数据
@@ -211,7 +216,10 @@ class Dataset_Custom(Dataset):
         x_test_tensor: torch.Tensor = torch.from_numpy(x_test).to(torch.float32)
         y_test_tensor: torch.Tensor = torch.from_numpy(y_test).to(torch.float32)
 
-        return x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor
+        x_all_tensor: torch.Tensor = torch.from_numpy(dataX).to(torch.float32)
+        y_all_tensor: torch.Tensor = torch.from_numpy(dataY.reshape(-1, pred_len, 1)).to(torch.float32)
+
+        return x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor, x_all_tensor, y_all_tensor
 
     def __getitem__(self, index):
         return self.data_x[index], self.data_y[index]

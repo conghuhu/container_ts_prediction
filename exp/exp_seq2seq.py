@@ -30,6 +30,16 @@ class Exp_Seq2Seq(Exp_Basic):
 
     def _load_data(self):
         args = self.args
+        all_data_set = Dataset_Custom(
+            args=args,
+            data_path=args.data_path,
+            flag="all",
+            size=[args.timestep, args.feature_size, args.pre_len],
+            features=args.features,
+            target=args.target,
+            scale_type=args.scale_type,
+            inverse=args.inverse,
+        )
         train_data_set = Dataset_Custom(
             args=args,
             data_path=args.data_path,
@@ -60,10 +70,14 @@ class Exp_Seq2Seq(Exp_Basic):
             target=args.target,
             inverse=args.inverse,
         )
+        self.all_data_set = all_data_set
         self.train_data_set = train_data_set
         self.test_data_set = test_data_set
         self.pred_data_set = pred_data_set
 
+        self.all_loader = DataLoader(self.all_data_set,
+                                     self.args.batch_size,
+                                     shuffle=True)
         self.train_loader = DataLoader(self.train_data_set,
                                        self.args.batch_size,
                                        shuffle=True)
@@ -80,6 +94,8 @@ class Exp_Seq2Seq(Exp_Basic):
             return self.train_data_set, self.train_loader
         elif flag == 'test':
             return self.test_data_set, self.test_loader
+        elif flag == 'all':
+            return self.all_data_set, self.all_loader
         else:
             return self.pred_data_set, self.pred_loader
 
@@ -112,7 +128,7 @@ class Exp_Seq2Seq(Exp_Basic):
         return total_loss
 
     def train(self, setting):
-        train_data_set, train_loader = self._get_data(flag='train')
+        train_data_set, train_loader = self._get_data(flag='all')
         test_data_set, test_loader = self._get_data(flag='test')
 
         path = os.path.join(self.args.checkpoints, setting)
