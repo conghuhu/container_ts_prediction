@@ -96,7 +96,7 @@ class Dataset_Custom(Dataset):
         else:
             data: np.ndarray = df_data.values
 
-        cache_tensor_path = os.path.join('./cached/', self.args.setting)
+        cache_tensor_path = './cached'
         if not os.path.exists(cache_tensor_path):
             os.makedirs(cache_tensor_path)
 
@@ -233,9 +233,6 @@ class Dataset_Custom(Dataset):
     def inverse_transform_y(self, data):
         return self.scaler_y.inverse_transform(data)
 
-    def inverse_transform_queueId(self, data):
-        return self.scaler_queueId.inverse_transform(data)
-
 
 class Dataset_Pred(Dataset):
     def __init__(self, args, data_path, size, dataset_obj: Dataset_Custom, flag='pred',
@@ -266,7 +263,7 @@ class Dataset_Pred(Dataset):
         self.queueIds_df = queueIds_df
         self.queueIds = queueIds
 
-        cache_tensor_path = os.path.join('./cached/', self.args.setting)
+        cache_tensor_path = './cached'
         if not os.path.exists(cache_tensor_path):
             os.makedirs(cache_tensor_path)
 

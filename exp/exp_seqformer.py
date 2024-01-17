@@ -275,8 +275,8 @@ class Exp_SeqFormer(Exp_Basic):
         # 添加标题和图例
         plt.title("test state")
         plt.legend()
+        plt.savefig(folder_path + 'all.svg', format='svg', dpi=1000)
         plt.show()
-        plt.savefig(folder_path + 'all.png')
 
         return
 
