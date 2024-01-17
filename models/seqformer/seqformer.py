@@ -405,11 +405,7 @@ class SeqFormer(nn.Module):
         self.fc_all = nn.Linear(feature_size, hidden_size)
         self.fc_cpu = nn.Linear(1, hidden_size)
         self.fc_fuse = nn.Linear(hidden_size, hidden_size)
-        # self.fc_c = nn.Linear(1, hidden_size)
-        # self.fc_o1 = nn.Linear(6, hidden_size)
-        # self.fc_o2 = nn.Linear(hidden_size, hidden_size)
-        # self.fc_o3 = nn.Linear(hidden_size, 1)
-        # self.relu = F.relu
+        # self.fc_input = nn.Linear(feature_size, hidden_size)
 
         self.encoder = Encoder(
             num_layers=num_layers,
@@ -440,12 +436,6 @@ class SeqFormer(nn.Module):
     def forward(self, x):
         # x.shape(batch_size, timeStep, feature_size)
         batch_size = x.shape[0]
-        # x_c = x[:, :, 0].unsqueeze(-1)
-        # x_o = x[:, :, 1:]
-        # x_c = self.fc_c(x_c)
-        # x_o = self.fc_o1(x_o)
-        # x_o = torch.sigmoid(self.fc_o3(self.relu(self.fc_o2(x_c + x_o))))
-        # x = torch.mul(x_c,x_o)
 
         # timeStep, batch_size, feature_size
         x = x.transpose(1, 0)

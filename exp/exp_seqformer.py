@@ -135,6 +135,7 @@ class Exp_SeqFormer(Exp_Basic):
         if not os.path.exists(path):
             os.makedirs(path)
 
+        train_start_time = time.time()
         time_now = time.time()
         train_steps = len(train_loader)
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
@@ -200,6 +201,8 @@ class Exp_SeqFormer(Exp_Basic):
             gc.collect()
             if hasattr(torch.cuda, 'empty_cache'):
                 torch.cuda.empty_cache()
+
+        print("Finsh train, total time is: {}".format(time.time() - train_start_time))
 
         plot_loss_data(results_train_loss, self.args.loss_name, self.args.setting, 'train')
         plot_loss_data(results_test_loss, self.args.loss_name, self.args.setting, 'test')
@@ -273,6 +276,7 @@ class Exp_SeqFormer(Exp_Basic):
         plt.title("test state")
         plt.legend()
         plt.show()
+        plt.savefig(folder_path + 'all.png')
 
         return
 
