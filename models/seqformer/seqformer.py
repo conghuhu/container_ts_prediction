@@ -1,8 +1,9 @@
+import math
 from typing import Optional
+
 import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
-import math
 
 
 class ConvolutionModule(nn.Module):
@@ -397,8 +398,8 @@ class Decoder(nn.Module):
 
 
 class SeqFormer(nn.Module):
-    def __init__(self, timestep, feature_size, hidden_size, num_layers, num_heads, ffn_hidden_size, dropout, pre_norm, output_size, pre_len):
-
+    def __init__(self, timestep, feature_size, hidden_size, num_layers, num_heads, ffn_hidden_size, dropout, pre_norm,
+                 output_size, pre_len):
         super(SeqFormer, self).__init__()
 
         self.fc_all = nn.Linear(feature_size, hidden_size)
@@ -450,7 +451,7 @@ class SeqFormer(nn.Module):
         x = x.transpose(1, 0)
 
         # timeStep, batch_size, hidden_size
-        x = self.fc_fuse(self.fc_cpu(x[:, :, 0].unsqueeze(-1))+self.fc_all(x))
+        x = self.fc_fuse(self.fc_cpu(x[:, :, 0].unsqueeze(-1)) + self.fc_all(x))
         # x = self.fc_input(x)
         x_pos = self.x_pos(x)
 
