@@ -1,4 +1,5 @@
 import argparse
+
 from exp.exp_seqformer import Exp_SeqFormer
 
 parser = argparse.ArgumentParser(description='SeqFormer time series Forecasting')
@@ -6,6 +7,7 @@ parser.add_argument('--mode', type=str, default='all',
                     help='mode of run, options: [all, train, test, pred]')
 parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='checkpoints path')
 args = parser.parse_args()
+
 
 class Config:
     # basic config
@@ -45,21 +47,23 @@ class Config:
     # GPU
     use_gpu = True
     gpu = 0
+    train_range = 'train'  # 训练集的范围 ['all', 'train']
 
 
 config = Config()
 
 # setting record of experiments
-setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_nl{}_nh{}_dp{}'.format(config.model_name, config.timestep,
-                                                                                    config.feature_size,
-                                                                                    config.output_size,
-                                                                                    config.pre_len, config.epochs,
-                                                                                    config.learning_rate,
-                                                                                    config.batch_size,
-                                                                                    config.hidden_size,
-                                                                                    config.num_layers,
-                                                                                    config.num_heads,
-                                                                                    config.dropout)
+setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_nl{}_nh{}_dp{}_tr{}'.format(config.model_name, config.timestep,
+                                                                                     config.feature_size,
+                                                                                     config.output_size,
+                                                                                     config.pre_len, config.epochs,
+                                                                                     config.learning_rate,
+                                                                                     config.batch_size,
+                                                                                     config.hidden_size,
+                                                                                     config.num_layers,
+                                                                                     config.num_heads,
+                                                                                     config.dropout,
+                                                                                     config.train_range)
 
 config.setting = setting
 exp = Exp_SeqFormer(config)

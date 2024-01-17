@@ -128,7 +128,7 @@ class Exp_SeqFormer(Exp_Basic):
         return total_loss
 
     def train(self, setting):
-        train_data_set, train_loader = self._get_data(flag='all')
+        train_data_set, train_loader = self._get_data(flag=self.args.train_range)
         test_data_set, test_loader = self._get_data(flag='test')
 
         path = os.path.join(self.args.checkpoints, setting)

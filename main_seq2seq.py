@@ -35,30 +35,34 @@ class Config:
     bidirectional = True
 
     # optimization
-    epochs = 100  # 迭代轮数
+    epochs = 50  # 迭代轮数
     batch_size = 512  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
     loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
-    lradj = 'type1'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
+    lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
     # GPU
     use_gpu = True
     gpu = 0
 
+    train_range = 'all'  # 训练集的范围 ['all', 'train']
+
 
 config = Config()
 
 # setting record of experiments
-setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_bi{}'.format(config.model_name, config.features,
-                                                                                    config.timestep,
-                                                                                    config.feature_size,
-                                                                                    config.output_size,
-                                                                                    config.pre_len, config.epochs,
-                                                                                    config.learning_rate,
-                                                                                    config.batch_size,
-                                                                                    config.num_layers,
-                                                                                    config.bidirectional)
+setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_bi{}_tr{}'.format(config.model_name,
+                                                                                         config.features,
+                                                                                         config.timestep,
+                                                                                         config.feature_size,
+                                                                                         config.output_size,
+                                                                                         config.pre_len, config.epochs,
+                                                                                         config.learning_rate,
+                                                                                         config.batch_size,
+                                                                                         config.num_layers,
+                                                                                         config.bidirectional,
+                                                                                         config.train_range)
 
 config.setting = setting
 exp = Exp_Seq2Seq(config)
