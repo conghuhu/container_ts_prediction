@@ -51,7 +51,8 @@ class Dataset_Custom(Dataset):
         # 读取数据并预处理
         # 默认第一列时间戳为index
         data_df = pd.read_csv(self.data_path)
-        print("读取到本地csv数据： \n", data_df.head())
+        # print("读取到本地csv数据： \n", data_df.head())
+        print("加载{}数据集...".format(self.flag))
 
         # 时间特征编码
         # df_stamp = pd.DataFrame(data_df.index, columns=['timestamp'])
@@ -100,8 +101,8 @@ class Dataset_Custom(Dataset):
             os.makedirs(cache_tensor_path)
 
         # 检查本地结果文件是否存在，如果存在直接返回
-        x_train_cache_tensor_path = cache_tensor_path + '/x_train_{}.pt'.format(self.args.train_range)
-        y_train_cache_tensor_path = cache_tensor_path + '/y_train_{}.pt'.format(self.args.train_range)
+        x_train_cache_tensor_path = cache_tensor_path + '/x_train_{}.pt'.format(self.flag)
+        y_train_cache_tensor_path = cache_tensor_path + '/y_train_{}.pt'.format(self.flag)
         x_test_cache_tensor_path = cache_tensor_path + '/x_test.pt'
         y_test_cache_tensor_path = cache_tensor_path + '/y_test.pt'
         if self.flag == 'train' or self.flag == 'all':
