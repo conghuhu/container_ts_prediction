@@ -46,7 +46,8 @@ class Config:
     use_gpu = True
     gpu = 0
 
-    train_range = 'all'  # 训练集的范围 ['all', 'train']
+    train_range = 'train'  # 训练集的范围 ['all', 'train']
+    pred_mode = 'paper'  # 预测模式 ['paper', 'show']
 
 
 config = Config()

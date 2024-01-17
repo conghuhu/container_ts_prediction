@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import torch
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from torch import Tensor
 from torch.utils.data import Dataset
 
 from utils.tools import csv_to_torch, torch_to_csv
@@ -101,10 +100,10 @@ class Dataset_Custom(Dataset):
             os.makedirs(cache_tensor_path)
 
         # 检查本地结果文件是否存在，如果存在直接返回
-        x_train_cache_tensor_path = cache_tensor_path + '/x_train_{}.pt'.format(self.args.model_name)
-        y_train_cache_tensor_path = cache_tensor_path + '/y_train_{}.pt'.format(self.args.model_name)
-        x_test_cache_tensor_path = cache_tensor_path + '/x_test_{}.pt'.format(self.args.model_name)
-        y_test_cache_tensor_path = cache_tensor_path + '/y_test_{}.pt'.format(self.args.model_name)
+        x_train_cache_tensor_path = cache_tensor_path + '/x_train_{}.pt'.format(self.args.train_range)
+        y_train_cache_tensor_path = cache_tensor_path + '/y_train_{}.pt'.format(self.args.train_range)
+        x_test_cache_tensor_path = cache_tensor_path + '/x_test.pt'
+        y_test_cache_tensor_path = cache_tensor_path + '/y_test.pt'
         if self.flag == 'train' or self.flag == 'all':
             if os.path.exists(x_train_cache_tensor_path) and os.path.exists(y_train_cache_tensor_path):
                 self.data_x = csv_to_torch(x_train_cache_tensor_path)
@@ -267,8 +266,8 @@ class Dataset_Pred(Dataset):
         if not os.path.exists(cache_tensor_path):
             os.makedirs(cache_tensor_path)
 
-        self.x_test = csv_to_torch(cache_tensor_path + '/x_test_{}.pt'.format(self.args.model_name))
-        self.y_test = csv_to_torch(cache_tensor_path + '/y_test_{}.pt'.format(self.args.model_name))
+        self.x_test = csv_to_torch(cache_tensor_path + '/x_test.pt')
+        self.y_test = csv_to_torch(cache_tensor_path + '/y_test.pt')
 
         print("x_test shape: ", self.x_test.shape)
         print("y_test shape: ", self.y_test.shape)

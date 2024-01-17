@@ -24,7 +24,8 @@ class Exp_SeqFormer(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = SeqFormer(args.timestep, args.feature_size, args.hidden_size, args.num_layers, args.num_heads, args.ffn_hidden_size, args.dropout, args.pre_norm, args.output_size, args.pre_len)
+        model = SeqFormer(args.timestep, args.feature_size, args.hidden_size, args.num_layers, args.num_heads,
+                          args.ffn_hidden_size, args.dropout, args.pre_norm, args.output_size, args.pre_len)
 
         return model
 
@@ -296,6 +297,62 @@ class Exp_SeqFormer(Exp_Basic):
             os.makedirs(folder_path)
 
         self.model.eval()
+
+        if self.args.pred_mode == 'paper':
+            # for循环里判断queueId是否在target中，不在则continue
+            target = [36, 291, 82929]
+            plt.figure(dpi=300, figsize=(9, 6))
+            idx = 1
+            for i, (batch_x, batch_y, queueId) in enumerate(tqdm(pred_loader)):
+                queueId = queueId.item()
+                if queueId not in target:
+                    continue
+                history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
+                pred, true = self._process_one_batch(pred_data, batch_x, batch_y)
+                # pred.shape [batchSize=1, pre_len, 1]
+                pred = pred[0]
+                pred = pred_data.inverse_transform_y(pred)
+                # pred.shape [pre_len, 1]
+                true = true[0]
+                true = pred_data.inverse_transform_y(true)
+                # true.shape [pre_len, 1]
+
+                # 真实展示的数据
+                true_show_data = np.concatenate([history_data[:, -1], true[:, -1]], axis=0)
+                # true_show_data.shape [timestep+pre_len]
+
+                # 绘图
+                plt.subplot(3, 1, idx)
+                plt.title('Past vs Predicted Future Values, QUEUE_ID: {}'.format(queueId))
+                if args.features == 'MS' or args.features == 'S':
+                    # print("true_show_data: \n", true_show_data)
+                    # print("pred data: \n", pred)
+                    plt.plot(range(len(true_show_data)), true_show_data,
+                             label='True Values')
+                    plt.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
+                             label='Predicted Values')
+                else:
+                    print('未实现多元预测多元的可视化')
+                    return
+
+                # 添加标题和轴标签
+                if idx == 1:
+                    # 添加图例
+                    plt.legend()
+                # plt.xlabel('Time Point')
+                plt.ylabel(args.target)
+                # 在特定索引位置画一条直线
+                plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
+                plt.title('QUEUE_ID: {}'.format(queueId))
+                idx += 1
+
+            # plt.suptitle('Past vs Predicted Future Values')
+            plt.tight_layout()
+            plt.savefig(folder_path + '{}_forcast_paper.svg'.format(args.target), format='svg', dpi=1000,
+                        bbox_inches='tight')
+            plt.show()
+            closePlots()
+            return
 
         for i, (batch_x, batch_y, queueId) in enumerate(tqdm(pred_loader)):
             queueId = queueId.item()
