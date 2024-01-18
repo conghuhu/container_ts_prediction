@@ -33,7 +33,7 @@ class Config:
     num_layers = 3  # encoder和decoder的层数
     ffn_hidden_size = 512  # FFN隐层大小
     num_heads = 2
-    dropout = 0.0
+    dropout = 0.05
     pre_norm = False
 
     # optimization
@@ -47,7 +47,9 @@ class Config:
     # GPU
     use_gpu = True
     gpu = 0
+
     train_range = 'train'  # 训练集的范围 ['all', 'train']
+    pred_mode = 'paper'  # 预测模式 ['paper', 'show']
 
 
 config = Config()

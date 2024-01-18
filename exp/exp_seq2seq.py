@@ -322,7 +322,6 @@ class Exp_Seq2Seq(Exp_Basic):
 
                 # 绘图
                 plt.subplot(3, 1, idx)
-                plt.title('Past vs Predicted Future Values, QUEUE_ID: {}'.format(queueId))
                 if args.features == 'MS' or args.features == 'S':
                     # print("true_show_data: \n", true_show_data)
                     # print("pred data: \n", pred)
@@ -342,7 +341,7 @@ class Exp_Seq2Seq(Exp_Basic):
                 plt.ylabel(args.target)
                 # 在特定索引位置画一条直线
                 plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
-                plt.title('QUEUE_ID: {}'.format(queueId))
+                plt.title('API_ID: {}'.format(queueId))
                 idx += 1
 
             # plt.suptitle('Past vs Predicted Future Values')
