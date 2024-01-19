@@ -1,3 +1,4 @@
+import numpy as np
 import torch.nn.functional as F
 from torch import nn
 
@@ -30,6 +31,13 @@ class CNN_LSTM_Attention(nn.Module):
 
         # 激活函数
         self.relu = nn.ReLU()
+
+        print("Number Parameters: cnn-lstm-attention", self.get_n_params())
+
+    def get_n_params(self):
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        number_params = sum([np.prod(p.size()) for p in model_parameters])
+        return number_params
 
     def forward(self, x, hidden=None):
         # 原始x：B, T, feature_size

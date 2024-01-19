@@ -31,7 +31,7 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 256  # 隐层大小
+    hidden_size = 64  # 隐层大小
     num_layers = 2  # RNN的层数
     bidirectional = True
     out_channels = 50  # CNN输出通道
