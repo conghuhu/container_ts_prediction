@@ -41,7 +41,7 @@ class Config:
     # optimization
     epochs = 50  # 迭代轮数
     batch_size = 512  # 批次大小
-    patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
+    patience = 50  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
     loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
