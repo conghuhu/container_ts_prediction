@@ -6,6 +6,7 @@ parser = argparse.ArgumentParser(description='SeqFormer time series Forecasting'
 parser.add_argument('--mode', type=str, default='all',
                     help='mode of run, options: [all, train, test, pred]')
 parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='checkpoints path')
+parser.add_argument('--run_type', type=str, default='shell', help='run type, options: [shell, ide]')
 args = parser.parse_args()
 
 
@@ -50,6 +51,8 @@ class Config:
 
     train_range = 'train'  # 训练集的范围 ['all', 'train']
     pred_mode = 'paper'  # 预测模式 ['paper', 'show']
+
+    run_type = args.run_type
 
 
 config = Config()

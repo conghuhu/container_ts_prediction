@@ -7,6 +7,7 @@ parser = argparse.ArgumentParser(description='Seq2Seq time series Forecasting')
 parser.add_argument('--mode', type=str, default='all',
                     help='mode of run, options: [all, train, test, pred]')
 parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='checkpoints path')
+parser.add_argument('--run_type', type=str, default='shell', help='run type, options: [shell, ide]')
 args = parser.parse_args()
 
 
@@ -52,6 +53,8 @@ class Config:
     train_range = 'train'  # 训练集的范围 ['all', 'train']
     pred_mode = 'show'  # 预测模式 ['paper', 'show']
 
+    run_type = args.run_type  # 运行模式 ['shell', 'ide']， shell模式不show图片
+
 
 config = Config()
 
@@ -71,11 +74,14 @@ setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_bi{}_tr{}
 config.setting = setting
 exp = Exp_CNN_LSTM(config)
 
-print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
-exp.train(setting)
+if args.mode == 'all' or args.mode == 'train':
+    print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
+    exp.train(setting)
 
-print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-exp.test(setting)
+if args.mode == 'all' or args.mode == 'test':
+    print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    exp.test(setting, load=True)
 
-print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-exp.predict(setting, load=True)
+if args.mode == 'all' or args.mode == 'pred':
+    print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    exp.predict(setting, load=True)
