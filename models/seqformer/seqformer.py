@@ -1,6 +1,7 @@
 import math
 from typing import Optional
 
+import numpy as np
 import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
@@ -432,6 +433,13 @@ class SeqFormer(nn.Module):
         self.decoder_norm = nn.LayerNorm(hidden_size)
 
         self.fc_output = nn.Linear(hidden_size, output_size)
+
+        print("Number Parameters: seqformer", self.get_n_params())
+
+    def get_n_params(self):
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        number_params = sum([np.prod(p.size()) for p in model_parameters])
+        return number_params
 
     def forward(self, x):
         # x.shape(batch_size, timeStep, feature_size)

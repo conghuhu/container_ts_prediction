@@ -53,10 +53,19 @@ class Transformer(nn.Module):
         )
         self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         # self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
-        self.fc1 = nn.Linear(timestep * hidden_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, pre_len)
+        # self.fc1 = nn.Linear(timestep * hidden_size, hidden_size)
+        # self.fc2 = nn.Linear(hidden_size, pre_len)
+        self.fc_layers = nn.Sequential(
+            nn.Linear(timestep * hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_size, pre_len)
+        )
 
-        print("Number Parameters: cnn-lstm-attention", self.get_n_params())
+        print("Number Parameters: transformer", self.get_n_params())
 
     def get_n_params(self):
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())
@@ -69,8 +78,9 @@ class Transformer(nn.Module):
         x = self.pos_emb(x)  # [256, 126, 256]
         x = self.encoder(x)  # [256, 126, 256]
         # 不经过解码器
-        x = x.flatten(start_dim=1)  # [256, 32256]
-        x = self.fc1(x)  # [256, 256]
-        output = self.fc2(x)  # [256, 256]
+        x = x.flatten(start_dim=1)  # [B, T*hidden_size]
+        # x = self.fc1(x)  # [256, 256]
+        # output = self.fc2(x)  # [256, 256]
+        output = self.fc_layers(x)  # 通过Sequential模块处理
 
         return output.unsqueeze(-1)

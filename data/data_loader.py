@@ -96,7 +96,8 @@ class Dataset_Custom(Dataset):
         else:
             data: np.ndarray = df_data.values
 
-        cache_tensor_path = './cached'
+        cache_tensor_path = os.path.join('./cached',
+                                         'ts{}_fs{}_pl{}'.format(self.timestep, self.feature_size, self.pred_len))
         if not os.path.exists(cache_tensor_path):
             os.makedirs(cache_tensor_path)
 
@@ -263,7 +264,8 @@ class Dataset_Pred(Dataset):
         self.queueIds_df = queueIds_df
         self.queueIds = queueIds
 
-        cache_tensor_path = './cached'
+        cache_tensor_path = os.path.join('./cached',
+                                         'ts{}_fs{}_pl{}'.format(self.timestep, self.feature_size, self.pred_len))
         if not os.path.exists(cache_tensor_path):
             os.makedirs(cache_tensor_path)
 

@@ -23,7 +23,7 @@ class Config:
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
-    timestep = 126  # 时间步长，就是利用多少时间窗口
+    timestep = 48  # 时间步长，就是利用多少时间窗口
     output_size = 1  # 只预测CPU
     feature_size = 8  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
     pre_len = 24  # 预测长度
@@ -58,17 +58,20 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_nl{}_nh{}_dp{}_tr{}'.format(config.model_name, config.timestep,
-                                                                                     config.feature_size,
-                                                                                     config.output_size,
-                                                                                     config.pre_len, config.epochs,
-                                                                                     config.learning_rate,
-                                                                                     config.batch_size,
-                                                                                     config.hidden_size,
-                                                                                     config.num_layers,
-                                                                                     config.num_heads,
-                                                                                     config.dropout,
-                                                                                     config.train_range)
+setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_nl{}_nh{}_dp{}_ffn{}_tr{}'.format(config.model_name,
+                                                                                           config.timestep,
+                                                                                           config.feature_size,
+                                                                                           config.output_size,
+                                                                                           config.pre_len,
+                                                                                           config.epochs,
+                                                                                           config.learning_rate,
+                                                                                           config.batch_size,
+                                                                                           config.hidden_size,
+                                                                                           config.num_layers,
+                                                                                           config.num_heads,
+                                                                                           config.dropout,
+                                                                                           config.ffn_hidden_size,
+                                                                                           config.train_range)
 
 config.setting = setting
 exp = Exp_SeqFormer(config)
