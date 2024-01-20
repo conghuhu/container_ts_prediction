@@ -4,7 +4,7 @@ import time
 from matplotlib import pyplot as plt
 
 
-def plot_loss_data(data, loss_name, setting, flag):
+def plot_loss_data(data, loss_name, setting, flag, run_type):
     # 使用Matplotlib绘制线图
     plt.figure()
     plt.figure(figsize=(10, 5))
@@ -22,7 +22,8 @@ def plot_loss_data(data, loss_name, setting, flag):
 
     plt.savefig(folder_path + '/{}_loss.png'.format(flag))
 
-    plt.show()
+    if run_type == 'ide':
+        plt.show()
 
 
 def closePlots():

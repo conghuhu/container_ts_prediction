@@ -1,74 +1,76 @@
+import math
+
+import numpy as np
 import torch
 import torch.nn as nn
+from torch import Tensor
 
-from layers.Embed import DataEmbedding
-from layers.SelfAttention_Family import FullAttention, AttentionLayer
-from layers.Transformer_EncDec import Decoder, DecoderLayer, Encoder, EncoderLayer
+
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, 1, d_model)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Arguments:
+            x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
+        """
+        x = x + self.pe[:x.size(0)]
+        return self.dropout(x)
 
 
 class Transformer(nn.Module):
-    """
-    Vanilla Transformer
-    with O(L^2) complexity
-    Paper link: https://proceedings.neurips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf
-    """
-
-    def __init__(self, configs):
+    def __init__(self, feature_size, hidden_size, num_layers, num_heads, dropout, device, pre_len, timestep):
         super(Transformer, self).__init__()
-        self.pred_len = configs.pred_len
-        self.output_attention = configs.output_attention
-        # Embedding
-        self.enc_embedding = DataEmbedding(configs.enc_in, configs.d_model, configs.embed, configs.freq,
-                                           configs.dropout)
-        # Encoder
-        self.encoder = Encoder(
-            [
-                EncoderLayer(
-                    AttentionLayer(
-                        FullAttention(False, configs.factor, attention_dropout=configs.dropout,
-                                      output_attention=configs.output_attention), configs.d_model, configs.n_heads),
-                    configs.d_model,
-                    configs.d_ff,
-                    dropout=configs.dropout,
-                    activation=configs.activation
-                ) for l in range(configs.e_layers)
-            ],
-            norm_layer=torch.nn.LayerNorm(configs.d_model)
+        # embed_dim = head_dim * num_heads?
+        self.pre_len = pre_len
+        self.input_fc = nn.Linear(feature_size, hidden_size)
+        self.pos_emb = PositionalEncoding(hidden_size)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=hidden_size,
+            nhead=num_heads,
+            dim_feedforward=4 * hidden_size,
+            batch_first=True,
+            dropout=dropout,
+            device=device
         )
-        # Decoder
-        self.dec_embedding = DataEmbedding(configs.dec_in, configs.d_model, configs.embed, configs.freq,
-                                           configs.dropout)
-        self.decoder = Decoder(
-            [
-                DecoderLayer(
-                    AttentionLayer(
-                        FullAttention(True, configs.factor, attention_dropout=configs.dropout,
-                                      output_attention=False),
-                        configs.d_model, configs.n_heads),
-                    AttentionLayer(
-                        FullAttention(False, configs.factor, attention_dropout=configs.dropout,
-                                      output_attention=False),
-                        configs.d_model, configs.n_heads),
-                    configs.d_model,
-                    configs.d_ff,
-                    dropout=configs.dropout,
-                    activation=configs.activation,
-                )
-                for l in range(configs.d_layers)
-            ],
-            norm_layer=torch.nn.LayerNorm(configs.d_model),
-            projection=nn.Linear(configs.d_model, configs.c_out, bias=True)
+        decoder_layer = nn.TransformerDecoderLayer(
+            d_model=hidden_size,
+            nhead=num_heads,
+            dropout=dropout,
+            dim_feedforward=4 * hidden_size,
+            batch_first=True,
+            device=device
         )
+        self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        # self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+        self.fc1 = nn.Linear(timestep * hidden_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, pre_len)
 
-    def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
-        # Embedding
-        enc_out = self.enc_embedding(x_enc, x_mark_enc)
-        enc_out, attns = self.encoder(enc_out, attn_mask=None)
+        print("Number Parameters: cnn-lstm-attention", self.get_n_params())
 
-        dec_out = self.dec_embedding(x_dec, x_mark_dec)
-        dec_out = self.decoder(dec_out, enc_out, x_mask=None, cross_mask=None)
-        return dec_out
+    def get_n_params(self):
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        number_params = sum([np.prod(p.size()) for p in model_parameters])
+        return number_params
 
-    def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
-        dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
-        return dec_out[:, -self.pred_len:, :]  # [B, L, D]
+    def forward(self, x):
+        # print(x.size())  # [256, 126, 8]
+        x = self.input_fc(x)  # [256, 126, 256]
+        x = self.pos_emb(x)  # [256, 126, 256]
+        x = self.encoder(x)  # [256, 126, 256]
+        # 不经过解码器
+        x = x.flatten(start_dim=1)  # [256, 32256]
+        x = self.fc1(x)  # [256, 256]
+        output = self.fc2(x)  # [256, 256]
+
+        return output.unsqueeze(-1)

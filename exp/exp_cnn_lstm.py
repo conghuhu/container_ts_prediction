@@ -11,4 +11,5 @@ class Exp_CNN_LSTM(Exp_Basic):
         model = CNN_LSTM_Attention(args.feature_size, args.hidden_size, args.num_layers,
                                    args.out_channels, args.num_heads, args.output_size, args.bidirectional,
                                    args.dropout)
+        print(model)
         return model

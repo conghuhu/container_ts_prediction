@@ -2,7 +2,7 @@ import argparse
 
 from exp.exp_cnn_lstm import Exp_CNN_LSTM
 
-parser = argparse.ArgumentParser(description='Seq2Seq time series Forecasting')
+parser = argparse.ArgumentParser(description='CNN_LSTM_Attention time series Forecasting')
 
 parser.add_argument('--mode', type=str, default='all',
                     help='mode of run, options: [all, train, test, pred]')
@@ -31,18 +31,18 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 64  # 隐层大小
-    num_layers = 2  # RNN的层数
-    bidirectional = True
-    out_channels = 50  # CNN输出通道
+    hidden_size = 128  # 隐层大小
+    num_layers = 1  # RNN的层数
+    bidirectional = False
+    out_channels = 32  # CNN输出通道
     num_heads = 2  # 注意力机制头的数量
-    dropout = 0.0
+    dropout = 0.1
 
     # optimization
     epochs = 50  # 迭代轮数
-    batch_size = 512  # 批次大小
-    patience = 50  # 早停机制，如果损失多少个epochs没有改变就停止训练。
-    learning_rate = 0.0003  # 学习率
+    batch_size = 256  # 批次大小
+    patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
+    learning_rate = 0.001  # 学习率
     loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
@@ -59,17 +59,20 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_bi{}_tr{}'.format(config.model_name,
-                                                                                         config.features,
-                                                                                         config.timestep,
-                                                                                         config.feature_size,
-                                                                                         config.output_size,
-                                                                                         config.pre_len, config.epochs,
-                                                                                         config.learning_rate,
-                                                                                         config.batch_size,
-                                                                                         config.num_layers,
-                                                                                         config.bidirectional,
-                                                                                         config.train_range)
+setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_oc{}_bi{}_tr{}'.format(config.model_name,
+                                                                                                   config.features,
+                                                                                                   config.timestep,
+                                                                                                   config.feature_size,
+                                                                                                   config.output_size,
+                                                                                                   config.pre_len,
+                                                                                                   config.epochs,
+                                                                                                   config.learning_rate,
+                                                                                                   config.batch_size,
+                                                                                                   config.num_layers,
+                                                                                                   config.hidden_size,
+                                                                                                   config.out_channels,
+                                                                                                   config.bidirectional,
+                                                                                                   config.train_range)
 
 config.setting = setting
 exp = Exp_CNN_LSTM(config)

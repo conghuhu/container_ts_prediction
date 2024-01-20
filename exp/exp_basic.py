@@ -214,8 +214,8 @@ class Exp_Basic(object):
 
         print("Finsh train, total time is: {}".format(time.time() - train_start_time))
 
-        plot_loss_data(results_train_loss, self.args.loss_name, self.args.setting, 'train')
-        plot_loss_data(results_test_loss, self.args.loss_name, self.args.setting, 'test')
+        plot_loss_data(results_train_loss, self.args.loss_name, self.args.setting, 'train', self.args.run_type)
+        plot_loss_data(results_test_loss, self.args.loss_name, self.args.setting, 'test', self.args.run_type)
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
@@ -271,9 +271,9 @@ class Exp_Basic(object):
         write_to_file(setting, mse, mae, rmse, mape, mspe)
 
         # 将数据保存到本地
-        np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
-        np.save(folder_path + 'pred.npy', preds)
-        np.save(folder_path + 'true.npy', trues)
+        # np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
+        # np.save(folder_path + 'pred.npy', preds)
+        # np.save(folder_path + 'true.npy', trues)
 
         # 画出测试集拟合曲线
         plt.figure(figsize=(15, 8))
@@ -308,7 +308,7 @@ class Exp_Basic(object):
 
         self.model.eval()
 
-        if self.args.pred_mode == 'paper':
+        if self.args.run_type == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
             target = [36, 291, 82929]
             plt.figure(dpi=300, figsize=(9, 6))
