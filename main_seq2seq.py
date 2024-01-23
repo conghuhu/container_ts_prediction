@@ -31,13 +31,13 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 128  # 隐层大小
+    hidden_size = 64  # 隐层大小
     num_layers = 2  # RNN的层数
     bidirectional = True
 
     # optimization
-    epochs = 50  # 迭代轮数
-    batch_size = 256  # 批次大小
+    epochs = 70  # 迭代轮数
+    batch_size = 512  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
     loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
