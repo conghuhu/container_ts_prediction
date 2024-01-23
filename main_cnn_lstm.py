@@ -24,7 +24,7 @@ class Config:
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
-    timestep = 48  # 时间步长，就是利用多少时间窗口
+    timestep = 24  # 时间步长，就是利用多少时间窗口
     output_size = 24  # 多输出任务，最终输出层大小，预测未来几个时间步
     feature_size = 8  # 每个步长对应的特征数量
     pre_len = output_size  # 预测长度
@@ -34,13 +34,13 @@ class Config:
     hidden_size = 32  # 隐层大小
     num_layers = 1  # RNN的层数
     bidirectional = False
-    out_channels = 32  # CNN输出通道
+    out_channels = 64  # CNN输出通道
     num_heads = 4  # 注意力机制头的数量
     dropout = 0.1
 
     # optimization
-    epochs = 50  # 迭代轮数
-    batch_size = 128  # 批次大小
+    epochs = 30  # 迭代轮数
+    batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.0001  # 学习率
     loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
@@ -50,7 +50,7 @@ class Config:
     use_gpu = True
     gpu = 0
 
-    train_range = 'train'  # 训练集的范围 ['all', 'train']
+    train_range = 'all'  # 训练集的范围 ['all', 'train']
     pred_mode = 'show'  # 预测模式 ['paper', 'show']
 
     run_type = args.run_type  # 运行模式 ['shell', 'ide']， shell模式不show图片
