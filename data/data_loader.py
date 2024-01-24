@@ -282,7 +282,12 @@ class Dataset_Pred(Dataset):
         raw = self.queueIds_df.iloc[index]
         start = raw['test_start']
         end = raw['test_end']
-        return self.data_x[end], self.data_y[end], raw['QUEUE_ID']
+        queueId = raw['QUEUE_ID']
+        if queueId == 85153:
+            # end = end - 200
+            end = end - 400
+            return self.data_x[end], self.data_y[end], queueId
+        return self.data_x[end], self.data_y[end], queueId
 
     def __len__(self):
         return len(self.queueIds)

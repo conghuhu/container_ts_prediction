@@ -276,16 +276,51 @@ class Exp_Basic(object):
         # np.save(folder_path + 'true.npy', trues)
 
         # 画出测试集拟合曲线
-        plt.figure(figsize=(15, 8))
-        # 绘制历史数据
-        plt.plot(labels, label='TrueValue')
-        # 绘制预测数据
-        plt.plot(results, label='Prediction')
+        plt.figure(dpi=300, figsize=(15, 12))
+        if self.args.test_show == 'brief':
+            plt.subplot(3, 1, 1)
+            # 绘制历史数据
+            plt.plot(labels[13622:14260], label='TrueValue')
+            # 绘制预测数据
+            plt.plot(results[13622:14260], label='Prediction')
+            plt.ylabel(self.args.target, fontsize=20)
+            plt.title('API_ID: {}'.format(36), fontsize=20)
+            plt.xticks(fontsize=20)
+            plt.yticks(fontsize=20)
+            plt.legend(fontsize=20)
 
-        # 添加标题和图例
-        plt.title("test state")
-        plt.legend()
-        plt.savefig(folder_path + 'all.svg', format='svg', dpi=1000)
+            plt.subplot(3, 1, 2)
+            # 绘制历史数据
+            plt.plot(labels[16037:17803], label='TrueValue')
+            # 绘制预测数据
+            plt.plot(results[16037:17803], label='Prediction')
+            plt.ylabel(self.args.target, fontsize=20)
+            plt.title('API_ID: {}'.format(291), fontsize=20)
+            plt.xticks(fontsize=20)
+            plt.yticks(fontsize=20)
+
+            plt.subplot(3, 1, 3)
+            # 绘制历史数据
+            plt.plot(labels[39467:42327], label='TrueValue')
+            # 绘制预测数据
+            plt.plot(results[39467:42327], label='Prediction')
+            plt.ylabel(self.args.target, fontsize=20)
+            plt.title('API_ID: {}'.format(85153), fontsize=20)
+            plt.xticks(fontsize=20)
+            plt.yticks(fontsize=20)
+
+        else:
+            # 添加标题和图例
+            plt.plot(labels, label='TrueValue')
+            # 绘制预测数据
+            plt.plot(results, label='Prediction')
+            plt.ylabel(self.args.target, fontsize=20)
+            plt.title("test state", fontsize=20)
+            plt.legend(fontsize=20)
+
+        plt.tight_layout()
+        plt.savefig(folder_path + ('brief.svg' if self.args.test_show == 'brief' else 'all.svg'), format='svg',
+                    dpi=1000, bbox_inches='tight')
         if self.args.run_type == 'ide':
             plt.show()
 
@@ -308,9 +343,9 @@ class Exp_Basic(object):
 
         self.model.eval()
 
-        if self.args.run_type == 'paper':
+        if self.args.pred_mode == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
-            target = [36, 291, 82929]
+            target = [36, 291, 85153]
             plt.figure(dpi=300, figsize=(9, 6))
             idx = 1
             for i, (batch_x, batch_y, queueId) in enumerate(tqdm(pred_loader)):
