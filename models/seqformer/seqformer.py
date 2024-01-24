@@ -449,8 +449,8 @@ class SeqFormer(nn.Module):
         x = x.transpose(1, 0)
 
         # timeStep, batch_size, hidden_size
-        x = self.fc_fuse(self.fc_cpu(x[:, :, 0].unsqueeze(-1)) + self.fc_all(x))
-        # x = self.fc_input(x)
+        # x = self.fc_fuse(self.fc_cpu(x[:, :, 0].unsqueeze(-1)) + self.fc_all(x))
+        x = self.fc_input(x)
         x_pos = self.x_pos(x)
 
         # timeStep, batch_size, hidden_size
