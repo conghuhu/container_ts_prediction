@@ -51,7 +51,8 @@ class Config:
     gpu = 0
 
     train_range = 'all'  # 训练集的范围 ['all', 'train']
-    pred_mode = 'show'  # 预测模式 ['paper', 'show']
+    pred_mode = 'paper'  # 预测模式 ['paper', 'show']
+    test_show = 'brief'  # 测试集展示 ['all', 'brief']
 
     run_type = args.run_type  # 运行模式 ['shell', 'ide']， shell模式不show图片
 

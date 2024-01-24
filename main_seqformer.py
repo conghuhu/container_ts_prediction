@@ -44,6 +44,7 @@ class Config:
     learning_rate = 0.001  # 学习率
     loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
+    test_show = 'brief'  # 测试集展示 ['all', 'brief']
 
     # GPU
     use_gpu = True
