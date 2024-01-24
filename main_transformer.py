@@ -32,12 +32,12 @@ class Config:
 
     # model define
     hidden_size = 64  # 隐层大小
-    num_layers = 1  # encoder层数
-    num_heads = 4  # nhead数和d_model也就是嵌入维度必须满足整除关系
-    dropout = 0.1
+    num_layers = 3  # encoder层数
+    num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
+    dropout = 0.00
 
     # optimization
-    epochs = 70  # 迭代轮数
+    epochs =80  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
