@@ -31,12 +31,12 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 32  # 隐层大小
+    hidden_size = 64  # 隐层大小
     num_layers = 1  # RNN的层数
     bidirectional = False
     out_channels = 64  # CNN输出通道
     num_heads = 4  # 注意力机制头的数量
-    dropout = 0.1
+    dropout = 0.00
 
     # optimization
     epochs = 80  # 迭代轮数
