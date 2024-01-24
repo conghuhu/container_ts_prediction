@@ -31,14 +31,14 @@ class Config:
 
     # model define
     hidden_size = 64  # 隐层大小
-    num_layers = 3  # encoder和decoder的层数
-    ffn_hidden_size = 512  # FFN隐层大小
+    num_layers = 2  # encoder和decoder的层数
+    ffn_hidden_size = 256  # FFN隐层大小
     num_heads = 2
-    dropout = 0.00
+    dropout = 0.01
     pre_norm = False
 
     # optimization
-    epochs = 100  # 迭代轮数
+    epochs = 80  # 迭代轮数
     batch_size = 512  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
