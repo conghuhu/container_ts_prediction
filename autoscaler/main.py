@@ -2,10 +2,13 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression, ElasticNetCV
+from sklearn.linear_model import LinearRegression, ElasticNet
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import PolynomialFeatures
 from xgboost import XGBRegressor
+
+poly = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
 
 
 def process_data():
@@ -22,6 +25,14 @@ def process_data():
 
     # Preparing the features and target variable
     X = replica_data[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'hour', 'day_of_week']]
+    # 添加交互特征
+    X_poly = poly.fit_transform(X[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE']])  # 只对CPU和内存使用率添加交互特征
+
+    # 合并新的交互特征和原始特征
+    X_poly_df = pd.DataFrame(X_poly, columns=poly.get_feature_names_out(['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE']))
+    X_poly_df.drop('CPU_TOTAL_USAGE', axis=1, inplace=True)
+    X_poly_df.drop('MEM_TOTAL_USAGE', axis=1, inplace=True)
+    X = pd.concat([X.reset_index(drop=True), X_poly_df], axis=1)
     y = replica_data['POD_COUNT']
 
     # Splitting the dataset into training and testing sets
@@ -32,26 +43,70 @@ def process_data():
 def train_model(X_train, y_train, model_type='randomForest'):
     # Training the Random Forest Regressor
     if model_type == 'randomForest':
-        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-        rf_model.fit(X_train, y_train)
+        # 定义要搜索的参数网格
+        # Best parameters: {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 500}
+        param_grid = {
+            'n_estimators': [300, 500, 1000],  # 树的数量
+            'max_depth': [None, 10, 20, 30],  # 树的最大深度
+            'min_samples_split': [2, 5, 10],  # 分裂内部节点所需的最少样本数
+            'min_samples_leaf': [1, 2, 4],  # 在叶节点上所需的最小样本数
+        }
+        rd = RandomForestRegressor(random_state=42)
+        # 设置GridSearchCV
+        grid_search = GridSearchCV(estimator=rd, param_grid=param_grid, cv=3, scoring='neg_mean_absolute_error',
+                                   n_jobs=-1, verbose=2)
+
+        # 进行搜索
+        grid_search.fit(X_train, y_train)
+
+        # 输出最佳参数
+        print("Best parameters:", grid_search.best_params_)
+        print("Best score:", -grid_search.best_score_)
+
+        # 使用最佳参数的模型进行预测
+        rf_model = grid_search.best_estimator_
     elif model_type == 'linearRegression':
         rf_model = LinearRegression()
         rf_model.fit(X_train, y_train)
-    elif model_type == 'xgboost':
+    elif model_type == 'elasticNet':
+        # 定义要搜索的参数网格
+        # Best parameters found:  {'alpha': 1.0, 'l1_ratio': 0.9}
         param_grid = {
-            'n_estimators': [100, 200, 500, 1000, 1500],
-            'max_depth': [3, 6, 10],
+            'alpha': [0.1, 1.0, 10.0],  # 正则化强度
+            'l1_ratio': [0.1, 0.5, 0.9]  # L1比例在L1和L2正则化之间的混合参数
+        }
+        en = ElasticNet(random_state=42)
+        # Initialize GridSearchCV
+        grid_search = GridSearchCV(estimator=en, param_grid=param_grid, cv=3,
+                                   scoring='neg_mean_squared_error', verbose=2, n_jobs=-1)
+
+        # Fit GridSearchCV
+        grid_search.fit(X_train, y_train)
+
+        # Best parameters and best score
+        print("Best parameters found: ", grid_search.best_params_)
+        print("Best score found: ", grid_search.best_score_)
+        # Use the best parameters to re-train the model
+        rf_model = grid_search.best_estimator_
+    elif model_type == 'xgboost':
+        # Best parameters found:  {'colsample_bytree': 1, 'early_stopping_rounds': 10, 'learning_rate': 0.01, 'max_depth': 10, 'min_child_weight': 1, 'n_estimators': 500, 'subsample': 0.5}
+        param_grid = {
+            'n_estimators': [400, 500],
+            'max_depth': [i for i in range(3, 11, 2)],
             'learning_rate': [0.01, 0.05, 0.1],
-            'subsample': [0.5, 0.75, 1],
-            'colsample_bytree': [0.5, 0.75, 1],
-            'early_stopping_rounds': [10]
+            'subsample': [0.5, 0.7, 1],
+            'colsample_bytree': [0.5, 0.7, 1],
+            'early_stopping_rounds': [10],
+            'min_child_weight': [i for i in range(0, 11, 2)],
+            'gamma': [i for i in range(0, 11, 2)],
+            'reg_alpha': [0, 0.5, 1],
+            'reg_lambda': [0, 0.5, 1],
         }
         # Initialize the XGBRegressor
         xgb_regressor = XGBRegressor(random_state=42)
-
         # Initialize GridSearchCV
         grid_search = GridSearchCV(estimator=xgb_regressor, param_grid=param_grid, cv=3,
-                                   scoring='neg_mean_squared_error', verbose=1, n_jobs=-1)
+                                   scoring='neg_mean_squared_error', verbose=2, n_jobs=-1)
 
         # Fit GridSearchCV
         grid_search.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
@@ -61,20 +116,22 @@ def train_model(X_train, y_train, model_type='randomForest'):
         print("Best score found: ", grid_search.best_score_)
         # Use the best parameters to re-train the model
         rf_model = grid_search.best_estimator_
-    elif model_type == 'elasticNet':
-        rf_model = ElasticNetCV(cv=5, random_state=42)
-        rf_model.fit(X_train, y_train)
     elif model_type == 'lightgbm':
+        # Best parameters found:   {'colsample_bytree': 0.75, 'early_stopping_round': 10, 'learning_rate': 0.01, 'max_depth': -1, 'n_estimators': 500, 'num_leaves': 60, 'reg_alpha': 0.01, 'reg_lambda': 0.01, 'subsample': 0.5}
         param_grid = {
-            'num_leaves': [31, 50, 70],  # Adjust based on dataset size and complexity
-            'max_depth': [10, 20, -1],  # -1 means no limit
+            'num_leaves': [28, 31, 60],  # Adjust based on dataset size and complexity
+            'max_depth': [3, 5, 10, -1],  # -1 means no limit
             'learning_rate': [0.1, 0.01, 0.05],
-            'n_estimators': [100, 200, 500, 1000, 1500],
-            'early_stopping_round': [10]
+            'n_estimators': [300, 500, 1000],
+            'early_stopping_round': [10],
+            'subsample': [0.5, 0.8, 1.0],
+            'colsample_bytree': [0.5, 0.75, 1],
+            'reg_alpha': [0, 1e-2, 1e3],
+            'reg_lambda': [0, 1e-2, 1e3],
         }
         lgbm = LGBMRegressor(random_state=42)
         grid_search = GridSearchCV(estimator=lgbm, param_grid=param_grid, cv=3, scoring='neg_mean_squared_error',
-                                   verbose=1, n_jobs=-1)
+                                   verbose=2, n_jobs=-1)
         grid_search.fit(X_train, y_train,
                         eval_set=[(X_test, y_test)])
         # Best parameters and best score
@@ -88,7 +145,7 @@ def train_model(X_train, y_train, model_type='randomForest'):
     return rf_model
 
 
-def test_model(rf_model, X_test, y_test):
+def test_model(rf_model, X_test, y_test, model_type='randomForest'):
     # Predicting on the test set
     y_pred = rf_model.predict(X_test)
 
@@ -99,6 +156,12 @@ def test_model(rf_model, X_test, y_test):
     r2 = r2_score(y_test, y_pred)
 
     print(f"Model Evaluation:\nMSE: {mse}\nMAE: {mae}\nRMSE: {rmse}\nR2 Score: {r2}")
+    f = open("result_reg.txt", 'a')
+    f.write(model_type + "  \n")
+    f.write('MSE: {}, MAE: {}, RMSE: {}, R2: {}'.format(mse, mae, rmse, r2))
+    f.write('\n')
+    f.write('\n')
+    f.close()
 
 
 def predict(rf_model):
@@ -109,6 +172,12 @@ def predict(rf_model):
     predict_data['hour'] = predict_data['time'].dt.hour
     predict_data['day_of_week'] = predict_data['time'].dt.dayofweek
     predict_X = predict_data[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'hour', 'day_of_week']]
+    predict_X_poly = poly.transform(predict_X[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE']])
+    predict_X_poly_df = pd.DataFrame(predict_X_poly,
+                                     columns=poly.get_feature_names_out(['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE']))
+    predict_X_poly_df.drop('CPU_TOTAL_USAGE', axis=1, inplace=True)
+    predict_X_poly_df.drop('MEM_TOTAL_USAGE', axis=1, inplace=True)
+    predict_X = pd.concat([predict_X.reset_index(drop=True), predict_X_poly_df], axis=1)
 
     # Predicting the expected POD_COUNT using the trained model
     predicted_pod_count = rf_model.predict(predict_X)
@@ -122,7 +191,8 @@ def predict(rf_model):
 
 
 if __name__ == '__main__':
+    model_type = 'lightgbm'
     X_train, X_test, y_train, y_test = process_data()
-    model = train_model(X_train, y_train, 'xgboost')
-    test_model(model, X_test, y_test)
+    model = train_model(X_train, y_train, model_type)
+    test_model(model, X_test, y_test, model_type)
     predict(model)

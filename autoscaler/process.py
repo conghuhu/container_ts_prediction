@@ -1,10 +1,11 @@
 import pandas as pd
+from sklearn.impute import KNNImputer
 
 
 def concat():
-    cpu_df = pd.read_csv('../datasets/hpa/cpu_avg.csv')
-    mem_df = pd.read_csv('../datasets/hpa/mem_avg.csv')
-    count_df = pd.read_csv('../datasets/hpa/pod_count.csv')
+    cpu_df = pd.read_csv('../datasets/replica/cpu_avg.csv')
+    mem_df = pd.read_csv('../datasets/replica/mem_avg.csv')
+    count_df = pd.read_csv('../datasets/replica/pod_count.csv')
 
     cpu_df['value'] = cpu_df['value'] * 100
     count_df['value'] = count_df['value'].astype(int)
@@ -51,6 +52,40 @@ def concat_predict():
     df_merged.to_csv('../datasets/replica/replica_predict_data.csv', index=False)
 
 
+def fill_na():
+    replica_df = pd.read_csv('../datasets/replica/replica_data.csv')
+
+    # Initialize the KNN Imputer
+    imputer = KNNImputer(n_neighbors=5)
+
+    # Since KNNImputer works with numerical data, we'll exclude non-numerical columns if any
+    numerical_data = replica_df.select_dtypes(include=['int64', 'float64'])
+
+    # Fit the imputer and transform the data
+    imputed_data = imputer.fit_transform(numerical_data)
+
+    # Convert the imputed data back to a DataFrame
+    imputed_data_df = pd.DataFrame(imputed_data, columns=numerical_data.columns)
+
+    # Check if there are any missing values left
+    print(imputed_data_df.isnull().sum(), imputed_data_df.head())
+
+    columns_to_zero = ['CPU_AVG_USAGE', 'MEM_AVG_USAGE', 'CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE']
+    imputed_data_df.loc[imputed_data_df['POD_COUNT'] == 0, columns_to_zero] = 0
+    # Add the 'time' column back to the imputed and updated DataFrame
+    imputed_data_df['time'] = replica_df['time']
+
+    # Reorder the DataFrame to have 'time' as the first column
+    imputed_data_df = imputed_data_df[['time'] + [col for col in imputed_data_df.columns if col != 'time']]
+
+    # Verify the changes
+    print(imputed_data_df.head(), (imputed_data_df[imputed_data_df['POD_COUNT'] == 0][columns_to_zero] == 0).all())
+
+    imputed_data_df.to_csv('../datasets/replica/replica_data.csv', index=False)
+
+
 if __name__ == '__main__':
-    concat()
-    concat_predict()
+    # concat()
+    # 勿动
+    # concat_predict()
+    fill_na()
