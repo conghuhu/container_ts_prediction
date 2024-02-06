@@ -17,7 +17,75 @@ rcParams.update(config)
 def draw_load():
     register_matplotlib_converters()
 
-    file_path = './datasets/hpa/QPS.csv'
+    file_path = '../datasets/hpa/cpu_total.csv'
+    data = pd.read_csv(file_path)
+    # Converting 'time' to datetime for plotting
+    data['time'] = pd.to_datetime(data['time'])
+
+    data['value'] = data['value'] * 100
+
+    range_start = 45
+    range_num = 105
+    # range_num = 410
+
+    # Plotting
+    plt.figure(figsize=(12, 6))
+    # plt.plot(data['time'][range_start:range_num], data['value_scaled'][range_start:range_num] * 3, label='API')
+    plt.plot(data['time'], data['value'], label='API')
+    plt.ylabel('CPU使用率(%)')
+    plt.title('数据服务API的CPU总使用率')
+    plt.grid(True)
+    plt.xticks(rotation=30, fontsize=14)
+    # plt.yticks(fontsize=20)
+
+    # Improve formatting of time axis
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
+    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+
+    plt.tight_layout()
+    plt.legend()
+    plt.savefig('./cpu_load.svg', format='svg', dpi=400,
+                bbox_inches='tight')
+    plt.show()
+
+def draw_mem():
+    register_matplotlib_converters()
+
+    file_path = '../datasets/hpa/mem_total.csv'
+    data = pd.read_csv(file_path)
+    # Converting 'time' to datetime for plotting
+    data['time'] = pd.to_datetime(data['time'])
+
+    data['value'] = data['value'] / (1024 ** 2)
+
+    range_start = 45
+    range_num = 105
+    # range_num = 410
+
+    # Plotting
+    plt.figure(figsize=(12, 6))
+    # plt.plot(data['time'][range_start:range_num], data['value_scaled'][range_start:range_num] * 3, label='API')
+    plt.plot(data['time'], data['value'], label='API')
+    plt.ylabel('内存占用量(MiB)')
+    plt.title('数据服务API的内存总占用量')
+    plt.grid(True)
+    plt.xticks(rotation=30, fontsize=14)
+    # plt.yticks(fontsize=20)
+
+    # Improve formatting of time axis
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
+    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+
+    plt.tight_layout()
+    plt.legend()
+    plt.savefig('./mem_load.svg', format='svg', dpi=400,
+                bbox_inches='tight')
+    plt.show()
+
+def draw_qps():
+    register_matplotlib_converters()
+
+    file_path = '../datasets/hpa/QPS.csv'
     data = pd.read_csv(file_path)
     # Converting 'time' to datetime for plotting
     data['time'] = pd.to_datetime(data['time'])
@@ -37,7 +105,7 @@ def draw_load():
     # plt.yticks(fontsize=20)
 
     # Improve formatting of time axis
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
     plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
 
     plt.tight_layout()
@@ -107,6 +175,8 @@ def draw_request_time():
 
 
 if __name__ == '__main__':
+    draw_qps()
     draw_load()
+    draw_mem()
     # draw_replicas()
     # draw_request_time()

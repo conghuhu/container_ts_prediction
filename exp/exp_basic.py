@@ -4,7 +4,7 @@ import time
 
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, rcParams
 from torch import optim, nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -23,6 +23,15 @@ class Exp_Basic(object):
         self.device = self._acquire_device()
         self.model = self._build_model().to(self.device)
         self._load_data()
+
+        config = {
+            "font.weight": 'bold',
+            "font.family": 'serif',
+            "font.size": 20,
+            "mathtext.fontset": 'stix',
+            "font.serif": ['SimSun'],
+        }
+        rcParams.update(config)
         print("模型已初始化, 耗时{}s".format(time.time() - start))
 
     def _acquire_device(self):
@@ -283,31 +292,31 @@ class Exp_Basic(object):
             plt.plot(labels[13622:14260], label='TrueValue')
             # 绘制预测数据
             plt.plot(results[13622:14260], label='Prediction')
-            plt.ylabel(self.args.target, fontsize=20)
-            plt.title('API_ID: {}'.format(36), fontsize=20)
-            plt.xticks(fontsize=20)
-            plt.yticks(fontsize=20)
-            plt.legend(fontsize=20)
+            plt.ylabel(self.args.target)
+            plt.title('API_ID: {}'.format(36))
+            # plt.xticks(fontsize=20)
+            # plt.yticks(fontsize=20)
+            plt.legend()
 
             plt.subplot(3, 1, 2)
             # 绘制历史数据
             plt.plot(labels[16037:17803], label='TrueValue')
             # 绘制预测数据
             plt.plot(results[16037:17803], label='Prediction')
-            plt.ylabel(self.args.target, fontsize=20)
-            plt.title('API_ID: {}'.format(291), fontsize=20)
-            plt.xticks(fontsize=20)
-            plt.yticks(fontsize=20)
+            plt.ylabel(self.args.target)
+            plt.title('API_ID: {}'.format(291))
+            # plt.xticks(fontsize=20)
+            # plt.yticks(fontsize=20)
 
             plt.subplot(3, 1, 3)
             # 绘制历史数据
             plt.plot(labels[39467:42327], label='TrueValue')
             # 绘制预测数据
             plt.plot(results[39467:42327], label='Prediction')
-            plt.ylabel(self.args.target, fontsize=20)
-            plt.title('API_ID: {}'.format(85153), fontsize=20)
-            plt.xticks(fontsize=20)
-            plt.yticks(fontsize=20)
+            plt.ylabel(self.args.target)
+            plt.title('API_ID: {}'.format(85153))
+            # plt.xticks(fontsize=20)
+            # plt.yticks(fontsize=20)
 
         else:
             # 添加标题和图例

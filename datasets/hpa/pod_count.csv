@@ -209,9 +209,9 @@ time,value,metric
 2024-02-03 13:59:31,4.0,{'namespace': 'ds-test'}
 2024-02-03 14:00:31,5.0,{'namespace': 'ds-test'}
 2024-02-03 14:01:31,6.0,{'namespace': 'ds-test'}
-2024-02-03 14:02:31,5.0,{'namespace': 'ds-test'}
-2024-02-03 14:03:31,5.0,{'namespace': 'ds-test'}
-2024-02-03 14:04:31,5.0,{'namespace': 'ds-test'}
+2024-02-03 14:02:31,6.0,{'namespace': 'ds-test'}
+2024-02-03 14:03:31,6.0,{'namespace': 'ds-test'}
+2024-02-03 14:04:31,6.0,{'namespace': 'ds-test'}
 2024-02-03 14:05:31,6.0,{'namespace': 'ds-test'}
 2024-02-03 14:06:31,6.0,{'namespace': 'ds-test'}
 2024-02-03 14:07:31,4.0,{'namespace': 'ds-test'}
@@ -272,10 +272,10 @@ time,value,metric
 2024-02-03 15:02:31,5.0,{'namespace': 'ds-test'}
 2024-02-03 15:03:31,5.0,{'namespace': 'ds-test'}
 2024-02-03 15:04:31,5.0,{'namespace': 'ds-test'}
-2024-02-03 15:05:31,4.0,{'namespace': 'ds-test'}
-2024-02-03 15:06:31,4.0,{'namespace': 'ds-test'}
-2024-02-03 15:07:31,4.0,{'namespace': 'ds-test'}
-2024-02-03 15:08:31,4.0,{'namespace': 'ds-test'}
+2024-02-03 15:05:31,5.0,{'namespace': 'ds-test'}
+2024-02-03 15:06:31,5.0,{'namespace': 'ds-test'}
+2024-02-03 15:07:31,5.0,{'namespace': 'ds-test'}
+2024-02-03 15:08:31,5.0,{'namespace': 'ds-test'}
 2024-02-03 15:09:31,4.0,{'namespace': 'ds-test'}
 2024-02-03 15:10:31,4.0,{'namespace': 'ds-test'}
 2024-02-03 15:11:31,4.0,{'namespace': 'ds-test'}
