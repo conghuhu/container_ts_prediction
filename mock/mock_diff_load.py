@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib import rcParams
+from matplotlib import rcParams, font_manager
 from matplotlib.ticker import MaxNLocator
 
 # 生成示例数据
@@ -51,26 +51,43 @@ print(cpu_usage_C)
 
 config = {
     "font.family": 'serif',
-    "font.size": 16,
+    "font.size": 20,
     "mathtext.fontset": 'stix',
-    "font.serif": ['SimSun'],
+    "font.serif": ['Times New Roman'],
+    "font.weight": "normal"
 }
 rcParams.update(config)
 
+font_path = 'C:\\Users\\15841\\AppData\\Local\\Microsoft\\Windows\\Fonts\\宋体-粗体.ttf'
+font_manager.fontManager.addfont(font_path)
+prop = font_manager.FontProperties(fname=font_path)
+# 定义字体font1
+font1 = {'family': 'Times New Roman',
+         'weight': 'normal',
+         'size': 20,
+         }
+font2 = {
+    # 'family': prop.get_name(),
+    'family': 'SimSun',
+    'size': 20,
+    'weight': 'normal',
+}
+
 # 可视化
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(12, 8))
 plt.plot(df['Time'], df['CPU_Usage_A'], label='API-A')
 plt.plot(df['Time'], df['CPU_Usage_B'], label='API-B')
 plt.plot(df['Time'], df['CPU_Usage_C'], label='API-C')
 plt.axvline(11, color='blue', linestyle='--', linewidth=2)
-plt.xlabel('时间步')
-plt.ylabel('CPU使用率(%)')
-plt.title('不同数据服务API的CPU使用率')
-plt.legend()
+plt.xlabel('时间步', font2)
+plt.ylabel('CPU使用率(%)', font2)
+# plt.title('不同数据服务API的CPU使用率')
+plt.legend(prop=font1)
 plt.grid(True)
 plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
 
 plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
+plt.tight_layout()
 plt.savefig('./diff_cpu_load.svg', format='svg', dpi=400,
             bbox_inches='tight')
 plt.show()
