@@ -9,7 +9,7 @@ from torch import optim, nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from data.data_loader import Dataset_Custom, Dataset_Pred
+from data.data_loader import Dataset_Pred, Dataset_Lastest
 from utils.losses import mape_loss, mase_loss, smape_loss
 from utils.metrics import write_to_file, metric
 from utils.plot_tools import closePlots, plot_loss_data
@@ -49,17 +49,17 @@ class Exp_Basic(object):
 
     def _load_data(self):
         args = self.args
-        all_data_set = Dataset_Custom(
-            args=args,
-            data_path=args.data_path,
-            flag="all",
-            size=[args.timestep, args.feature_size, args.pre_len],
-            features=args.features,
-            target=args.target,
-            scale_type=args.scale_type,
-            inverse=args.inverse,
-        )
-        train_data_set = Dataset_Custom(
+        # all_data_set = Dataset_Lastest(
+        #     args=args,
+        #     data_path=args.data_path,
+        #     flag="all",
+        #     size=[args.timestep, args.feature_size, args.pre_len],
+        #     features=args.features,
+        #     target=args.target,
+        #     scale_type=args.scale_type,
+        #     inverse=args.inverse,
+        # )
+        train_data_set = Dataset_Lastest(
             args=args,
             data_path=args.data_path,
             flag="train",
@@ -69,7 +69,7 @@ class Exp_Basic(object):
             scale_type=args.scale_type,
             inverse=args.inverse,
         )
-        test_data_set = Dataset_Custom(
+        test_data_set = Dataset_Lastest(
             args=args,
             data_path=args.data_path,
             flag="test",
@@ -89,14 +89,14 @@ class Exp_Basic(object):
             target=args.target,
             inverse=args.inverse,
         )
-        self.all_data_set = all_data_set
+        # self.all_data_set = all_data_set
         self.train_data_set = train_data_set
         self.test_data_set = test_data_set
         self.pred_data_set = pred_data_set
 
-        self.all_loader = DataLoader(self.all_data_set,
-                                     self.args.batch_size,
-                                     shuffle=True)
+        # self.all_loader = DataLoader(self.all_data_set,
+        #                              self.args.batch_size,
+        #                              shuffle=True)
         self.train_loader = DataLoader(self.train_data_set,
                                        self.args.batch_size,
                                        shuffle=True)
@@ -279,11 +279,6 @@ class Exp_Basic(object):
         print('mse: {}, mae: {}, rmse: {}, mape: {}, mspe: {}'.format(mse, mae, rmse, mape, mspe))
         write_to_file(setting, mse, mae, rmse, mape, mspe)
 
-        # 将数据保存到本地
-        # np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
-        # np.save(folder_path + 'pred.npy', preds)
-        # np.save(folder_path + 'true.npy', trues)
-
         # 画出测试集拟合曲线
         plt.figure(dpi=300, figsize=(15, 12))
         if self.args.test_show == 'brief':
@@ -460,6 +455,8 @@ class Exp_Basic(object):
 
         y_pred = self.model(batch_x)
         if self.args.inverse:
-            y_pred = dataset_object.inverse_transform(y_pred)
+            batch_y = batch_y.squeeze(-1)
+            y_pred = y_pred.squeeze(-1)
+            y_pred = dataset_object.inverse_transform_y(y_pred)
 
         return y_pred, batch_y
