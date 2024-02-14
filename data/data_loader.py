@@ -283,11 +283,12 @@ class Dataset_Pred(Dataset):
         start = raw['test_start']
         end = raw['test_end']
         queueId = raw['QUEUE_ID']
+        queue_ids = torch.full((self.timestep, 1), queueId, dtype=torch.long)
         if queueId == 85153:
             # end = end - 200
             end = end - 400
-            return self.data_x[end], self.data_y[end], queueId
-        return self.data_x[end], self.data_y[end], queueId
+            return self.data_x[end], self.data_y[end], queue_ids
+        return self.data_x[end], self.data_y[end], queue_ids
 
     def __len__(self):
         return len(self.queueIds)
@@ -398,6 +399,8 @@ class Dataset_Lastest(Dataset):
         y_train_cache_tensor_path = cache_tensor_path + '/y_train_{}.pt'.format(self.flag)
         x_test_cache_tensor_path = cache_tensor_path + '/x_test.pt'
         y_test_cache_tensor_path = cache_tensor_path + '/y_test.pt'
+        queueIds_train_cache_tensor_path = cache_tensor_path + '/queueIds_train.pt'
+        queueIds_test_cache_tensor_path = cache_tensor_path + '/queueIds_test.pt'
         x_train_cache_reshaped_path = cache_tensor_path + '/x_train_reshaped.npy'
         y_train_cache_reshaped_path = cache_tensor_path + '/y_train_reshaped.npy'
         if os.path.exists(x_train_cache_reshaped_path) and os.path.exists(y_train_cache_reshaped_path):
@@ -409,21 +412,26 @@ class Dataset_Lastest(Dataset):
             if os.path.exists(x_train_cache_tensor_path) and os.path.exists(y_train_cache_tensor_path):
                 self.data_x = csv_to_torch(x_train_cache_tensor_path)
                 self.data_y = csv_to_torch(y_train_cache_tensor_path)
+                self.queueIds = csv_to_torch(queueIds_train_cache_tensor_path)
                 print("读取本地训练集缓存数据： \n", self.data_x.shape, self.data_y.shape)
                 return
         else:
             if os.path.exists(x_test_cache_tensor_path) and os.path.exists(y_test_cache_tensor_path):
                 self.data_x = csv_to_torch(x_test_cache_tensor_path)
                 self.data_y = csv_to_torch(y_test_cache_tensor_path)
+                self.queueIds = csv_to_torch(queueIds_test_cache_tensor_path)
                 print("读取本地测试集缓存数据： \n", self.data_x.shape, self.data_y.shape)
                 return
 
-        X_train_all, X_test_all, y_train_all, y_test_all = self.prepare_data(df_data)
+        X_train_all, X_test_all, y_train_all, y_test_all, queueIds_train_all, queueIds_test_all = self.prepare_data(
+            df_data)
 
         print("X_train_all shape: ", X_train_all.shape)
         print("X_test_all shape: ", X_test_all.shape)
         print("y_train_all shape: ", y_train_all.shape)
         print("y_test_all shape: ", y_test_all.shape)
+        print("queueIds_train_all shape: ", queueIds_train_all.shape)
+        print("queueIds_test_all shape: ", queueIds_test_all.shape)
 
         # 重塑数据为二维数组进行归一化
         train_nums, num_timesteps, train_features = X_train_all.shape
@@ -446,30 +454,39 @@ class Dataset_Lastest(Dataset):
         # 将归一化后的数据重塑回原始三维形状
         X_train_all = X_train_all_scaled.reshape(train_nums, num_timesteps, train_features)
         X_test_all = X_test_all_scaled.reshape(test_nums, num_timesteps, test_features)
-        y_train_all = y_train_all_scaled.reshape(train_nums, num_timesteps, 1)
-        y_test_all = y_test_all_scaled.reshape(test_nums, num_timesteps, 1)
+        y_train_all = y_train_all_scaled.reshape(train_nums, self.args.pre_len, 1)
+        y_test_all = y_test_all_scaled.reshape(test_nums, self.args.pre_len, 1)
 
         x_train_tensor: torch.Tensor = torch.from_numpy(X_train_all).to(torch.float32)
         y_train_tensor: torch.Tensor = torch.from_numpy(y_train_all).to(torch.float32)
         x_test_tensor: torch.Tensor = torch.from_numpy(X_test_all).to(torch.float32)
         y_test_tensor: torch.Tensor = torch.from_numpy(y_test_all).to(torch.float32)
+        queueIds_train_tensor: torch.Tensor = torch.from_numpy(queueIds_train_all).to(torch.float32)
+        queueIds_test_tensor: torch.Tensor = torch.from_numpy(queueIds_test_all).to(torch.float32)
+
         print("x_train shape: ", x_train_tensor.shape)
         print("y_train shape: ", y_train_tensor.shape)
         print("x_test shape: ", x_test_tensor.shape)
         print("y_test shape: ", y_test_tensor.shape)
+        print("queueIds_train shape: ", queueIds_train_tensor.shape)
+        print("queueIds_test shape: ", queueIds_test_tensor.shape)
 
         if self.flag == 'train' or self.flag == 'all':
             self.data_x = x_train_tensor
             self.data_y = y_train_tensor
+            self.queueIds = queueIds_train_tensor
         else:
             self.data_x = x_test_tensor
             self.data_y = y_test_tensor
+            self.queueIds = queueIds_test_tensor
 
         # 将数据保存到本地
         torch_to_csv(x_train_tensor, x_train_cache_tensor_path)
         torch_to_csv(y_train_tensor, y_train_cache_tensor_path)
         torch_to_csv(x_test_tensor, x_test_cache_tensor_path)
         torch_to_csv(y_test_tensor, y_test_cache_tensor_path)
+        torch_to_csv(queueIds_train_tensor, queueIds_train_cache_tensor_path)
+        torch_to_csv(queueIds_test_tensor, queueIds_test_cache_tensor_path)
 
     # 创建时间窗口并分割数据，包含归一化
     def prepare_data(self, data):
@@ -477,26 +494,31 @@ class Dataset_Lastest(Dataset):
         group_data = data.groupby('QUEUE_ID')
 
         # 存储分割后的数据
-        X_train_all, X_test_all, y_train_all, y_test_all = [], [], [], []
+        X_train_all, X_test_all, y_train_all, y_test_all, queueId_train_all, queueId_test_all = [], [], [], [], [], []
 
         for queue_id, group in group_data:
-            x_train, y_train, x_test, y_test, dataX, dataY = self.__split_data__(group, self.timestep,
-                                                                                 self.feature_size,
-                                                                                 self.pred_len)
+            x_train, y_train, x_test, y_test, dataX, dataY, queueIds_train, queueIds_test = self.__split_data__(group,
+                                                                                                                self.timestep,
+                                                                                                                self.feature_size,
+                                                                                                                self.pred_len)
 
             # 存储数据
             X_train_all.append(x_train)
             X_test_all.append(x_test)
             y_train_all.append(y_train)
             y_test_all.append(y_test)
+            queueId_train_all.append(queueIds_train)
+            queueId_test_all.append(queueIds_test)
 
         # 合并所有分割后的数据
         X_train_all = np.concatenate(X_train_all, axis=0)
         X_test_all = np.concatenate(X_test_all, axis=0)
         y_train_all = np.concatenate(y_train_all, axis=0)
         y_test_all = np.concatenate(y_test_all, axis=0)
+        queueId_train_all = np.concatenate(queueId_train_all, axis=0)
+        queueId_test_all = np.concatenate(queueId_test_all, axis=0)
 
-        return X_train_all, X_test_all, y_train_all, y_test_all
+        return X_train_all, X_test_all, y_train_all, y_test_all, queueId_train_all, queueId_test_all
 
     def __split_data__(self, data, timestep: int, feature_size: int,
                        pred_len: int):
@@ -509,6 +531,7 @@ class Dataset_Lastest(Dataset):
         """
         dataX = []  # 保存X
         dataY = []  # 保存Y
+        queueIds = []
         # print(data.shape, timestep, feature_size, pred_len)
 
         # 将整个窗口的数据保存到X中，将未来一天保存到Y中
@@ -516,9 +539,11 @@ class Dataset_Lastest(Dataset):
             # 第一列是Target, CPU_USAGE
             dataX.append(data[index: index + timestep])
             dataY.append(data.iloc[index + timestep: index + timestep + pred_len, 0].tolist())
+            queueIds.append(data.iloc[index: index + timestep, -1].tolist())
 
         dataX = np.array(dataX)
         dataY = np.array(dataY)
+        queueIds = np.array(queueIds)
 
         # 获取训练集大小
         train_size = int(np.round(self.ratio * dataX.shape[0]))
@@ -526,14 +551,16 @@ class Dataset_Lastest(Dataset):
         # 划分训练集、测试集
         x_train = dataX[: train_size, :].reshape(-1, timestep, feature_size)
         y_train = dataY[: train_size].reshape(-1, pred_len, 1)
+        queueIds_train = queueIds[: train_size].reshape(-1, timestep, 1)
 
         x_test = dataX[train_size:, :].reshape(-1, timestep, feature_size)
         y_test = dataY[train_size:].reshape(-1, pred_len, 1)
+        queueIds_test = queueIds[train_size:].reshape(-1, timestep, 1)
 
-        return x_train, y_train, x_test, y_test, dataX, dataY.reshape(-1, pred_len, 1)
+        return x_train, y_train, x_test, y_test, dataX, dataY.reshape(-1, pred_len, 1), queueIds_train, queueIds_test
 
     def __getitem__(self, index):
-        return self.data_x[index], self.data_y[index]
+        return self.data_x[index], self.data_y[index], self.queueIds[index]
 
     def __len__(self):
         return len(self.data_x)

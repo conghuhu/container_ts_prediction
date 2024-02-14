@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -64,6 +65,13 @@ class EncoderDecoderWrapper(nn.Module):
         self.pred_len = pred_len
         self.teacher_forcing = teacher_forcing
         self.linear = nn.Linear(input_size, output_size)
+
+        print("Number Parameters: Seq2Seq", self.get_n_params())
+
+    def get_n_params(self):
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        number_params = sum([np.prod(p.size()) for p in model_parameters])
+        return number_params
 
     def __call__(self, xb, yb=None):
         # xb shape: (batch_size, timeStep, feature_size)

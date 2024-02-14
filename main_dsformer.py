@@ -26,20 +26,20 @@ class Config:
     # forecasting task
     timestep = 24  # 时间步长，就是利用多少时间窗口
     output_size = 1  # 只预测CPU
-    feature_size = 8  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 24  # 预测长度
+    feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
+    pre_len = 12  # 预测长度
     inverse = False
 
     # model define
     hidden_size = 64  # 隐层大小
     num_layers = 3  # encoder层数
     num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
-    ffn_hidden_size = 64
-    queue_embed_dim = 100  # QUEUE_ID嵌入向量的维度
+    ffn_hidden_size = 4 * hidden_size
+    queue_embed_dim = hidden_size  # QUEUE_ID嵌入向量的维度
     dropout = 0.05
 
     # optimization
-    epochs = 5  # 迭代轮数
+    epochs = 20  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
@@ -50,7 +50,7 @@ class Config:
     use_gpu = True
     gpu = 0
 
-    train_range = 'all'  # 训练集的范围 ['all', 'train']
+    train_range = 'train'  # 训练集的范围 ['all', 'train']
     pred_mode = 'paper'  # 预测模式 ['paper', 'show']
     test_show = 'brief'  # 测试集展示 ['all', 'brief']
 
@@ -77,14 +77,14 @@ setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_rl{}_nh{}
 config.setting = setting
 exp = Exp_DsFormer(config)
 
-# if args.mode == 'all' or args.mode == 'train':
-#     print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
-#     exp.train(setting)
-#
-# if args.mode == 'all' or args.mode == 'test':
-#     print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-#     exp.test(setting, load=True)
-#
-# if args.mode == 'all' or args.mode == 'pred':
-#     print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-#     exp.predict(setting, load=True)
+if args.mode == 'all' or args.mode == 'train':
+    print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
+    exp.train(setting)
+
+if args.mode == 'all' or args.mode == 'test':
+    print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    exp.test(setting, load=True)
+
+if args.mode == 'all' or args.mode == 'pred':
+    print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    exp.predict(setting, load=True)

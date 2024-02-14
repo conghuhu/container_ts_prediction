@@ -27,17 +27,17 @@ class Config:
     timestep = 24  # 时间步长，就是利用多少时间窗口
     output_size = 1  # 只预测CPU
     feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 24  # 预测长度
+    pre_len = 12  # 预测长度
     inverse = False
 
     # model define
     hidden_size = 64  # 隐层大小
     num_layers = 3  # encoder层数
     num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
-    dropout = 0.00
+    dropout = 0.05
 
     # optimization
-    epochs = 2  # 迭代轮数
+    epochs = 10  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率

@@ -1,7 +1,9 @@
 import math
 
+import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class PositionalEncoding(nn.Module):
@@ -11,13 +13,14 @@ class PositionalEncoding(nn.Module):
 
         position = torch.arange(max_len).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
-        pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        pe = torch.zeros(max_len, d_model)
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1)
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x = x + self.pe[:x.size(0)]
+        x = x + self.pe[:x.size(0), :]
         return self.dropout(x)
 
 
@@ -36,15 +39,16 @@ class DynamicEmbedding(nn.Module):
             self.weight.data[self.padding_idx].zero_()
 
     def forward(self, input):
+        device = self.weight.device  # 获取模型权重当前的设备
         # Expand embedding weight if input exceeds current max size
         max_idx = input.max().item()
         if max_idx >= self.max_size:
             extra_size = max_idx + 1 - self.max_size
-            extra_weight = nn.Parameter(torch.Tensor(extra_size, self.embed_dim))
+            extra_weight = nn.Parameter(torch.Tensor(extra_size, self.embed_dim).to(device))  # 确保额外权重在正确的设备上
             nn.init.normal_(extra_weight)
             self.weight = nn.Parameter(torch.cat([self.weight, extra_weight], 0))
             self.max_size = max_idx + 1
-        return nn.functional.embedding(input, self.weight, self.padding_idx)
+        return F.embedding(input, self.weight, self.padding_idx)
 
     def extra_repr(self):
         return 'embed_dim={}, max_size={}, padding_idx={}'.format(
@@ -71,17 +75,18 @@ class DsFormer(nn.Module):
         :param max_queues:
         """
         super(DsFormer, self).__init__()
-        self.model_type = 'Transformer'
+        self.model_type = 'DsFormer'
+        self.feature_size = feature_size
         self.pos_encoder = PositionalEncoding(hidden_size, dropout)
-        encoder_layers = nn.TransformerEncoderLayer(hidden_size + queue_embed_dim, nhead, ffn_hidden_size, dropout,
-                                                    device=device)
+        encoder_layers = nn.TransformerEncoderLayer(hidden_size, nhead, ffn_hidden_size, dropout=dropout,
+                                                    device=device, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layers, num_layers)
-        self.feature_encoder = nn.Embedding(feature_size, hidden_size)
-        self.queue_embedding = DynamicEmbedding(queue_embed_dim, max_size=max_queues)
+        self.feature_encoder = nn.Linear(feature_size - 1, hidden_size)
+        self.queue_embedding = DynamicEmbedding(queue_embed_dim, max_size=max_queues).cuda()
         self.hidden_size = hidden_size
-        self.decoder = nn.Linear(hidden_size + queue_embed_dim, 1)
+        # self.decoder = nn.Linear(hidden_size + queue_embed_dim, pre_len)
         self.decoder = nn.Sequential(
-            nn.Linear(hidden_size + queue_embed_dim, hidden_size),
+            nn.Linear(hidden_size * timestep, hidden_size),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(hidden_size, hidden_size),
@@ -92,24 +97,32 @@ class DsFormer(nn.Module):
 
         self.init_weights()
 
+        print("Number Parameters: transformer", self.get_n_params())
+
     def init_weights(self):
         initrange = 0.1
         self.feature_encoder.weight.data.uniform_(-initrange, initrange)
         self.queue_embedding.weight.data.uniform_(-initrange, initrange)
-        self.decoder.bias.data.zero_()
-        self.decoder.weight.data.uniform_(-initrange, initrange)
+        # self.decoder.bias.data.zero_()
+        # self.decoder.weight.data.uniform_(-initrange, initrange)
 
-    def forward(self, src):
+    def get_n_params(self):
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        number_params = sum([np.prod(p.size()) for p in model_parameters])
+        return number_params
+
+    def forward(self, src, queue_ids):
         # Extract and remove the queue_id from src
-        queue_ids = src[:, :, 2].long()  # Assuming queue_id is the 3rd feature and integer
-        src = torch.cat((src[:, :, :2], src[:, :, 3:]), dim=2)  # Remove the queue_id from the features
-
-        queue_embed = self.queue_embedding(queue_ids).unsqueeze(1).repeat(1, src.size(1),
-                                                                          1)  # Repeat embedding for each time step
-        src = torch.cat((src, queue_embed), dim=2)
+        queue_ids = queue_ids.squeeze(-1).long()
+        src = src[:, :, :-1]  # Use the remaining features for prediction
 
         src = self.feature_encoder(src) * math.sqrt(self.hidden_size)
-        src = self.pos_encoder(src)
-        output = self.transformer_encoder(src)
-        output = self.decoder(output[:, -1, :])
-        return output
+        queue_embed = self.queue_embedding(queue_ids)  # queue_embed = [batch_size, seq_len, hidden_size]
+        src = src + queue_embed  # [batch_size, seq_len, hidden_size]
+
+        src = self.pos_encoder(src)  # [batch_size, seq_len, hidden_size]
+        output = self.transformer_encoder(src)  # output = [batch_size, seq_len, hidden_size]
+
+        output = output.flatten(start_dim=1)  # [B, T*hidden_size]
+        output = self.decoder(output)  # [B, pre_len]
+        return output.unsqueeze(-1)

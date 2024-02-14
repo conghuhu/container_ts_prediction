@@ -137,9 +137,9 @@ class Exp_Basic(object):
         self.model.eval()
         total_loss = []
         with torch.no_grad():
-            for i, (batch_x, batch_y) in enumerate(vali_loader):
+            for i, (batch_x, batch_y, batch_idx) in enumerate(vali_loader):
                 pred, true = self._process_one_batch(
-                    vali_data_set, batch_x, batch_y)
+                    vali_data_set, batch_x, batch_y, batch_idx)
                 loss = loss_function(pred.detach().cpu(), true.detach().cpu())
                 total_loss.append(loss)
         total_loss = np.average(total_loss)
@@ -171,7 +171,7 @@ class Exp_Basic(object):
 
             self.model.train()
             epoch_time = time.time()
-            for i, (batch_x, batch_y) in enumerate(tqdm(train_loader)):
+            for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(train_loader)):
                 iter_count += 1
 
                 model_optim.zero_grad()
@@ -180,7 +180,7 @@ class Exp_Basic(object):
                     print("batch_y shape: ", batch_y.shape)
                 # batch_x shape: [batch_size, timestep, feature_size]
                 # batch_y shape: [batch_size, pred_len, 1]
-                pred, true = self._process_one_batch(train_data_set, batch_x, batch_y)
+                pred, true = self._process_one_batch(train_data_set, batch_x, batch_y, batch_idx)
                 if i == 0:
                     print("pred shape: ", pred.shape)
                     print("true shape: ", true.shape)
@@ -223,8 +223,7 @@ class Exp_Basic(object):
 
         print("Finsh train, total time is: {}".format(time.time() - train_start_time))
 
-        plot_loss_data(results_train_loss, self.args.loss_name, self.args.setting, 'train', self.args.run_type)
-        plot_loss_data(results_test_loss, self.args.loss_name, self.args.setting, 'test', self.args.run_type)
+        plot_loss_data(results_train_loss, results_test_loss, self.args.setting, self.args.run_type)
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
@@ -250,9 +249,9 @@ class Exp_Basic(object):
         labels = []
 
         with torch.no_grad():
-            for batch_x, batch_y in tqdm(test_loader):
+            for batch_x, batch_y, batch_idx in tqdm(test_loader):
                 # pred shape: [batch_size, pred_len, 1]
-                pred, true = self._process_one_batch(test_data_set, batch_x, batch_y)
+                pred, true = self._process_one_batch(test_data_set, batch_x, batch_y, batch_idx)
                 pred = pred.detach().cpu().numpy()
                 true = true.detach().cpu().numpy()
                 # 只取每个多步预测的第一个值, 只取第一个值的 pred shape: [batch_size, 1]
@@ -352,12 +351,16 @@ class Exp_Basic(object):
             target = [36, 291, 85153]
             plt.figure(dpi=300, figsize=(9, 6))
             idx = 1
-            for i, (batch_x, batch_y, queueId) in enumerate(tqdm(pred_loader)):
-                queueId = queueId.item()
+            for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):
+                queueId = batch_idx[0, 0, 0].item()
                 if queueId not in target:
                     continue
+                print("开始预测")
+                print('batch_x: ', batch_x.shape)
+                print('batch_y: ', batch_y.shape)
+                print("batch_idx: ", batch_idx.shape)
                 history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
-                pred, true = self._process_one_batch(pred_data, batch_x, batch_y)
+                pred, true = self._process_one_batch(pred_data, batch_x, batch_y, batch_idx)
                 # pred.shape [batchSize=1, pre_len, 1]
                 pred = pred[0]
                 pred = pred_data.inverse_transform_y(pred)
@@ -403,10 +406,10 @@ class Exp_Basic(object):
             closePlots()
             return
 
-        for i, (batch_x, batch_y, queueId) in enumerate(tqdm(pred_loader)):
-            queueId = queueId.item()
+        for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):
+            queueId = batch_idx[0, 0, 0].item()
             history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
-            pred, true = self._process_one_batch(pred_data, batch_x, batch_y)
+            pred, true = self._process_one_batch(pred_data, batch_x, batch_y, batch_idx)
             # pred.shape [batchSize=1, pre_len, 1]
             pred = pred[0]
             pred = pred_data.inverse_transform_y(pred)
@@ -449,11 +452,12 @@ class Exp_Basic(object):
 
             closePlots()
 
-    def _process_one_batch(self, dataset_object, batch_x, batch_y):
+    def _process_one_batch(self, dataset_object, batch_x, batch_y, batch_idx):
         batch_x = batch_x.to(self.device)
         batch_y = batch_y.to(self.device)
+        batch_idx = batch_idx.to(self.device)
 
-        y_pred = self.model(batch_x)
+        y_pred = self.model(batch_x, batch_idx)
         if self.args.inverse:
             batch_y = batch_y.squeeze(-1)
             y_pred = y_pred.squeeze(-1)
