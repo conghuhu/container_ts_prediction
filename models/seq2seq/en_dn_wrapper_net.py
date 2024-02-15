@@ -73,7 +73,7 @@ class EncoderDecoderWrapper(nn.Module):
         number_params = sum([np.prod(p.size()) for p in model_parameters])
         return number_params
 
-    def __call__(self, xb, yb=None):
+    def __call__(self, xb, queue_ids):
         # xb shape: (batch_size, timeStep, feature_size)
         input_seq = xb
         encoder_output, encoder_hidden = self.encoder(input_seq)

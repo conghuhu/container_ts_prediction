@@ -441,7 +441,7 @@ class SeqFormer(nn.Module):
         number_params = sum([np.prod(p.size()) for p in model_parameters])
         return number_params
 
-    def forward(self, x):
+    def forward(self, x, queue_ids):
         # x.shape(batch_size, timeStep, feature_size)
         batch_size = x.shape[0]
 

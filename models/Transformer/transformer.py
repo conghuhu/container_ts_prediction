@@ -72,7 +72,7 @@ class Transformer(nn.Module):
         number_params = sum([np.prod(p.size()) for p in model_parameters])
         return number_params
 
-    def forward(self, x):
+    def forward(self, x, queue_ids):
         # print(x.size())  # [256, 126, 8]
         x = self.input_fc(x)  # [256, 126, 256]
         x = self.pos_emb(x)  # [256, 126, 256]

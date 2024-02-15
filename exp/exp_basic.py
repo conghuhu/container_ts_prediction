@@ -355,10 +355,6 @@ class Exp_Basic(object):
                 queueId = batch_idx[0, 0, 0].item()
                 if queueId not in target:
                     continue
-                print("开始预测")
-                print('batch_x: ', batch_x.shape)
-                print('batch_y: ', batch_y.shape)
-                print("batch_idx: ", batch_idx.shape)
                 history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
                 pred, true = self._process_one_batch(pred_data, batch_x, batch_y, batch_idx)
                 # pred.shape [batchSize=1, pre_len, 1]

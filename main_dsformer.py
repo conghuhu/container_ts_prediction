@@ -24,7 +24,7 @@ class Config:
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
-    timestep = 24  # 时间步长，就是利用多少时间窗口
+    timestep = 48  # 时间步长，就是利用多少时间窗口
     output_size = 1  # 只预测CPU
     feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
     pre_len = 12  # 预测长度

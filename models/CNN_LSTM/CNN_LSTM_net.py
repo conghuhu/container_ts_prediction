@@ -39,7 +39,7 @@ class CNN_LSTM_Attention(nn.Module):
         number_params = sum([np.prod(p.size()) for p in model_parameters])
         return number_params
 
-    def forward(self, x, hidden=None):
+    def forward(self, x, queue_ids, hidden=None):
         # 原始x：B, T, feature_size
         # 卷积层期望的输入维度是 [B, feature_size, T]，因此需要转置
         x = x.transpose(1, 2)
