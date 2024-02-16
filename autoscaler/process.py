@@ -84,8 +84,23 @@ def fill_na():
     imputed_data_df.to_csv('../datasets/replica/replica_data.csv', index=False)
 
 
+def add_expected_value():
+    replica_df = pd.read_csv('../datasets/replica/replica_data.csv')
+    # 新增expected_CPU列，值全部赋值为1
+    replica_df['expected_CPU_AVG_USAGE'] = 60.00
+    # 新增expected_MEM列，值全部赋值为1
+    replica_df['expected_MEM_AVG_USAGE'] = 70.00
+    replica_df.to_csv('../datasets/replica/replica_data.csv', index=False)
+
+    predict_df = pd.read_csv('../datasets/replica/predict_data.csv')
+    predict_df['expected_CPU_AVG_USAGE'] = 60.00
+    predict_df['expected_MEM_AVG_USAGE'] = 70.00
+    predict_df.to_csv('../datasets/replica/predict_data.csv', index=False)
+
+
 if __name__ == '__main__':
     # concat()
     # 勿动
     # concat_predict()
-    fill_na()
+    # fill_na()
+    add_expected_value()

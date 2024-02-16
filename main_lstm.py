@@ -1,6 +1,6 @@
 import argparse
 
-from exp.exp_cnn_lstm import Exp_CNN_LSTM
+from exp.exp_lstm import Exp_LSTM
 
 parser = argparse.ArgumentParser(description='CNN_LSTM_Attention time series Forecasting')
 
@@ -32,14 +32,11 @@ class Config:
 
     # model define
     hidden_size = 64  # 隐层大小
-    num_layers = 1  # RNN的层数
+    num_layers = 3  # RNN的层数
     bidirectional = False
-    out_channels = 64  # CNN输出通道
-    num_heads = 4  # 注意力机制头的数量
-    dropout = 0.00
 
     # optimization
-    epochs = 80  # 迭代轮数
+    epochs = 2  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
@@ -60,23 +57,22 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_oc{}_bi{}_tr{}'.format(config.model_name,
-                                                                                                   config.features,
-                                                                                                   config.timestep,
-                                                                                                   config.feature_size,
-                                                                                                   config.output_size,
-                                                                                                   config.pre_len,
-                                                                                                   config.epochs,
-                                                                                                   config.learning_rate,
-                                                                                                   config.batch_size,
-                                                                                                   config.num_layers,
-                                                                                                   config.hidden_size,
-                                                                                                   config.out_channels,
-                                                                                                   config.bidirectional,
-                                                                                                   config.train_range)
+setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_bi{}_tr{}'.format(config.model_name,
+                                                                                              config.features,
+                                                                                              config.timestep,
+                                                                                              config.feature_size,
+                                                                                              config.output_size,
+                                                                                              config.pre_len,
+                                                                                              config.epochs,
+                                                                                              config.learning_rate,
+                                                                                              config.batch_size,
+                                                                                              config.num_layers,
+                                                                                              config.hidden_size,
+                                                                                              config.bidirectional,
+                                                                                              config.train_range)
 
 config.setting = setting
-exp = Exp_CNN_LSTM(config)
+exp = Exp_LSTM(config)
 
 if args.mode == 'all' or args.mode == 'train':
     print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))

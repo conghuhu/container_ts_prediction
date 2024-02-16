@@ -223,7 +223,8 @@ class Dataset_Custom(Dataset):
         return x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor, x_all_tensor, y_all_tensor
 
     def __getitem__(self, index):
-        return self.data_x[index], self.data_y[index]
+        queue_ids = torch.full((len(self.data_x[index]), 1), 0, dtype=torch.long)
+        return self.data_x[index], self.data_y[index], queue_ids
 
     def __len__(self):
         return len(self.data_x)
@@ -504,8 +505,8 @@ class Dataset_Lastest(Dataset):
 
             # 存储数据
             X_train_all.append(x_train)
-            X_test_all.append(x_test)
             y_train_all.append(y_train)
+            X_test_all.append(x_test)
             y_test_all.append(y_test)
             queueId_train_all.append(queueIds_train)
             queueId_test_all.append(queueIds_test)

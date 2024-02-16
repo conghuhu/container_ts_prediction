@@ -27,7 +27,8 @@ def process_data():
     # replica_data_preprocessed = replica_data.drop(columns=['time'])
 
     # Preparing the features and target variable
-    X = replica_data[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'hour', 'day_of_week']]
+    X = replica_data[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'hour', 'day_of_week', 'expected_CPU_AVG_USAGE',
+                      'expected_MEM_AVG_USAGE']]
     # 添加交互特征
     X_poly = poly.fit_transform(X[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE']])  # 只对CPU和内存使用率添加交互特征
 
@@ -49,7 +50,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
     if model_type == 'randomForest':
         if train_mode == 'grid':
             # 定义要搜索的参数网格
-            # Best parameters: {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 500}
+            # Best parameters: {'max_depth': 10, 'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 500}
             param_grid = {
                 'n_estimators': [300, 500, 1000],  # 树的数量
                 'max_depth': [None, 10, 20, 30],  # 树的最大深度
@@ -102,7 +103,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
             rf_model.fit(X_train, y_train)
     elif model_type == 'xgboost':
         if train_mode == 'grid':
-            # Best parameters found:  {'colsample_bytree': 1, 'early_stopping_rounds': 10, 'learning_rate': 0.01, 'max_depth': 10, 'min_child_weight': 1, 'n_estimators': 500, 'subsample': 0.5}
+            # Best parameters found:  {'colsample_bytree': 1, 'early_stopping_rounds': 10, 'gamma': 0, 'learning_rate': 0.1, 'max_depth': 5, 'min_child_weight': 2, 'n_estimators': 400, 'reg_alpha': 1, 'reg_lambda': 0, 'subsample': 1}
             param_grid = {
                 'n_estimators': [400, 500],
                 'max_depth': [i for i in range(3, 11, 2)],
@@ -136,7 +137,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
             rf_model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
     elif model_type == 'lightgbm':
         if train_mode == 'grid':
-            # Best parameters found:   {'colsample_bytree': 0.75, 'early_stopping_round': 10, 'learning_rate': 0.01, 'max_depth': -1, 'n_estimators': 500, 'num_leaves': 60, 'reg_alpha': 0.01, 'reg_lambda': 0.01, 'subsample': 0.5}
+            # Best parameters found:  {'colsample_bytree': 0.75, 'early_stopping_round': 10, 'learning_rate': 0.05, 'max_depth': -1, 'n_estimators': 300, 'num_leaves': 60, 'reg_alpha': 0, 'reg_lambda': 0, 'subsample': 0.5}
             param_grid = {
                 'num_leaves': [28, 31, 60],  # Adjust based on dataset size and complexity
                 'max_depth': [3, 5, 10, -1],  # -1 means no limit
@@ -199,7 +200,8 @@ def predict(rf_model):
     predict_data['day_of_week'] = predict_data['time'].dt.dayofweek
     predict_data.sort_values(by=['time'], inplace=True)
 
-    predict_X = predict_data[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'hour', 'day_of_week']]
+    predict_X = predict_data[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'hour', 'day_of_week', 'expected_CPU_AVG_USAGE',
+                              'expected_MEM_AVG_USAGE']]
     predict_X_poly = poly.transform(predict_X[['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE']])
     predict_X_poly_df = pd.DataFrame(predict_X_poly,
                                      columns=poly.get_feature_names_out(['CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE']))
@@ -222,7 +224,7 @@ def predict(rf_model):
 
 
 if __name__ == '__main__':
-    model_type = 'lightgbm'
+    model_type = 'xgboost'
     X_train, X_test, y_train, y_test = process_data()
     model = train_model(X_train, y_train, model_type, 'grid')
 
