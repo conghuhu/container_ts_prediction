@@ -23,26 +23,28 @@ class Config:
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
-    timestep = 72  # 时间步长，就是利用多少时间窗口
-    output_size = 1  # 只预测CPU
+    timestep = 96  # 时间步长，就是利用多少时间窗口
+    output_size = 12  # 只预测CPU
     feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 12  # 预测长度
+    pre_len = 24  # 预测长度
     inverse = False
 
     # model define
     hidden_size = 64  # 隐层大小
-    num_layers = 3  # encoder和decoder的层数
-    ffn_hidden_size = 256  # FFN隐层大小
+    enc_layers = 2
+    dec_layers = 1
+    ffn_hidden_size = 8 * hidden_size  # FFN隐层大小
     num_heads = 2
-    dropout = 0.05
+    dropout = 0.1
     pre_norm = False
+    use_RevIN = True
 
     # optimization
-    epochs = 80  # 迭代轮数
+    epochs = 100  # 迭代轮数
     batch_size = 256  # 批次大小
-    patience = 20  # 早停机制，如果损失多少个epochs没有改变就停止训练。
+    patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
-    loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE']
+    loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
     # GPU
@@ -59,21 +61,24 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_nl{}_nh{}_dp{}_ffn{}_per_norm{}_tr{}'.format(config.model_name,
-                                                                                                      config.timestep,
-                                                                                                      config.feature_size,
-                                                                                                      config.output_size,
-                                                                                                      config.pre_len,
-                                                                                                      config.epochs,
-                                                                                                      config.learning_rate,
-                                                                                                      config.batch_size,
-                                                                                                      config.hidden_size,
-                                                                                                      config.num_layers,
-                                                                                                      config.num_heads,
-                                                                                                      config.dropout,
-                                                                                                      config.ffn_hidden_size,
-                                                                                                      config.pre_norm,
-                                                                                                      config.train_range)
+setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_per_norm{}_revin{}_tr{}'.format(
+    config.model_name,
+    config.timestep,
+    config.feature_size,
+    config.output_size,
+    config.pre_len,
+    config.epochs,
+    config.learning_rate,
+    config.batch_size,
+    config.hidden_size,
+    config.enc_layers,
+    config.dec_layers,
+    config.num_heads,
+    config.dropout,
+    config.ffn_hidden_size,
+    config.pre_norm,
+    config.use_RevIN,
+    config.train_range)
 
 config.setting = setting
 exp = Exp_SeqFormer(config)

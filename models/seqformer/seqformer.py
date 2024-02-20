@@ -6,6 +6,8 @@ import torch
 from torch import nn, Tensor
 from torch.nn import functional as F
 
+from models.RevIN.RevIN import RevIN
+
 
 class ConvolutionModule(nn.Module):
     def __init__(self,
@@ -399,9 +401,13 @@ class Decoder(nn.Module):
 
 
 class SeqFormer(nn.Module):
-    def __init__(self, timestep, feature_size, hidden_size, num_layers, num_heads, ffn_hidden_size, dropout, pre_norm,
-                 output_size, pre_len):
+    def __init__(self, timestep, feature_size, hidden_size, enc_layers, dec_layers, num_heads, ffn_hidden_size, dropout,
+                 pre_norm,
+                 output_size, pre_len, use_RevIN=False):
         super(SeqFormer, self).__init__()
+
+        self.use_RevIN = use_RevIN
+        self.pre_len = pre_len
 
         self.fc_all = nn.Linear(feature_size, hidden_size)
         self.fc_cpu = nn.Linear(1, hidden_size)
@@ -409,7 +415,7 @@ class SeqFormer(nn.Module):
         self.fc_input = nn.Linear(feature_size, hidden_size)
 
         self.encoder = Encoder(
-            num_layers=num_layers,
+            num_layers=enc_layers,
             d_model=hidden_size,
             nhead=num_heads,
             dim_feedforward=ffn_hidden_size,
@@ -422,7 +428,7 @@ class SeqFormer(nn.Module):
         self.output_pos = nn.Embedding(pre_len, hidden_size)
 
         self.decoder = Decoder(
-            num_layers=num_layers,
+            num_layers=dec_layers,
             d_model=hidden_size,
             nhead=num_heads,
             dim_feedforward=ffn_hidden_size,
@@ -434,6 +440,9 @@ class SeqFormer(nn.Module):
 
         self.fc_output = nn.Linear(hidden_size, output_size)
 
+        if use_RevIN:
+            self.revin = RevIN(feature_size)
+
         print("Number Parameters: seqformer", self.get_n_params())
 
     def get_n_params(self):
@@ -444,6 +453,9 @@ class SeqFormer(nn.Module):
     def forward(self, x, queue_ids):
         # x.shape(batch_size, timeStep, feature_size)
         batch_size = x.shape[0]
+
+        if self.use_RevIN:
+            x = self.revin(x, 'norm')
 
         # timeStep, batch_size, feature_size
         x = x.transpose(1, 0)
@@ -472,4 +484,7 @@ class SeqFormer(nn.Module):
         # batch_size, pre_len, output_size
         output = output.transpose(1, 0)
 
-        return output
+        if self.use_RevIN:
+            output = self.revin(output, 'denorm')
+
+        return output[:, -self.pre_len:, 0:1]

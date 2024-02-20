@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
+from models.RevIN.RevIN import RevIN
+
 
 class PositionalEncoding(nn.Module):
 
@@ -29,10 +31,12 @@ class PositionalEncoding(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, feature_size, hidden_size, num_layers, num_heads, dropout, device, pre_len, timestep):
+    def __init__(self, feature_size, hidden_size, num_layers, num_heads, dropout, device, pre_len, timestep,
+                 output_size,
+                 use_RevIN=False):
         super(Transformer, self).__init__()
-        # embed_dim = head_dim * num_heads?
         self.pre_len = pre_len
+        self.use_RevIN = use_RevIN
         self.input_fc = nn.Linear(feature_size, hidden_size)
         self.pos_emb = PositionalEncoding(hidden_size)
         encoder_layer = nn.TransformerEncoderLayer(
@@ -52,9 +56,8 @@ class Transformer(nn.Module):
             device=device
         )
         self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        # self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
-        # self.fc1 = nn.Linear(timestep * hidden_size, hidden_size)
-        # self.fc2 = nn.Linear(hidden_size, pre_len)
+        self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+        self.fc = nn.Linear(output_size * hidden_size, output_size)
         self.fc_layers = nn.Sequential(
             nn.Linear(timestep * hidden_size, hidden_size),
             nn.ReLU(),
@@ -62,8 +65,11 @@ class Transformer(nn.Module):
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_size, pre_len)
+            nn.Linear(hidden_size, output_size)
         )
+
+        if use_RevIN:
+            self.revin = RevIN(feature_size)
 
         print("Number Parameters: transformer", self.get_n_params())
 
@@ -73,6 +79,8 @@ class Transformer(nn.Module):
         return number_params
 
     def forward(self, x, queue_ids):
+        if self.use_RevIN:
+            x = self.revin(x, 'norm')
         # print(x.size())  # [256, 126, 8]
         x = self.input_fc(x)  # [256, 126, 256]
         x = self.pos_emb(x)  # [256, 126, 256]
@@ -82,5 +90,7 @@ class Transformer(nn.Module):
         # x = self.fc1(x)  # [256, 256]
         # output = self.fc2(x)  # [256, 256]
         output = self.fc_layers(x)  # 通过Sequential模块处理
+        if self.use_RevIN:
+            output = self.revin(output, 'denorm')
 
-        return output.unsqueeze(-1)
+        return output[:, -self.pre_len:, 0:1]

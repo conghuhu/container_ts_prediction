@@ -55,21 +55,14 @@ class Dataset_Custom(Dataset):
         print("加载{}数据集...".format(self.flag))
 
         # 时间特征编码
-        # df_stamp = pd.DataFrame(data_df.index, columns=['timestamp'])
-        # df_stamp.rename(columns={'timestamp': 'date'}, inplace=True)
-        # df_stamp['date'] = pd.to_datetime(df_stamp.date, unit='ms')
-        # print("df_stamp: \n", df_stamp)
-        # if self.timeenc == 0:
-        #     df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
-        #     df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
-        #     df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
-        #     df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
-        #     data_stamp = df_stamp.drop(labels=['date'], axis=1).values
-        #     # data_stamp shape: [len, 4]
-        # elif self.timeenc == 1:
-        #     data_stamp = time_features(pd.to_datetime(df_stamp['date'].values), freq=self.freq)
-        #     data_stamp = data_stamp.transpose(1, 0)
-        #     # data_stamp shape: [len, 5]
+        # Convert timestamp to readable datetime
+        data_df['datetime'] = pd.to_datetime(data_df['timestamp'], unit='ms')
+        # Extract time features
+        data_df['hour'] = data_df['datetime'].dt.hour
+        data_df['day_of_week'] = data_df['datetime'].dt.dayofweek
+        data_df['day'] = data_df['datetime'].dt.day
+        data_df['weekday'] = data_df['datetime'].dt.weekday
+        data_df['month'] = data_df['datetime'].dt.month
 
         '''
         data_df.columns: ['timestamp(index)', target feature, ...(other features)]
@@ -82,6 +75,8 @@ class Dataset_Custom(Dataset):
             cols = list(data_df.columns)
             cols.remove(self.target)
             cols.remove('QUEUE_ID')
+            cols.remove('datetime')
+            cols.remove('timestamp')
         data_df = data_df[[self.target] + cols + ['QUEUE_ID']]
 
         if self.features == 'S':
@@ -286,9 +281,16 @@ class Dataset_Pred(Dataset):
         queueId = raw['QUEUE_ID']
         queue_ids = torch.full((self.timestep, 1), queueId, dtype=torch.long)
         if queueId == 85153:
-            # end = end - 200
             end = end - 400
-            return self.data_x[end], self.data_y[end], queue_ids
+            # end = end - 1065
+        elif queueId == 287:
+            end = end - 80
+        elif queueId == 27:
+            end = end - 2000
+        elif queueId == 36:
+            end = end
+        elif queueId == 291:
+            end = end
         return self.data_x[end], self.data_y[end], queue_ids
 
     def __len__(self):

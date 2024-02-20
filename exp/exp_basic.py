@@ -25,11 +25,11 @@ class Exp_Basic(object):
         self._load_data()
 
         config = {
-            "font.weight": 'bold',
             "font.family": 'serif',
             "font.size": 20,
             "mathtext.fontset": 'stix',
-            "font.serif": ['SimSun'],
+            "font.serif": ['Times New Roman'],
+            "font.weight": "normal"
         }
         rcParams.update(config)
         print("模型已初始化, 耗时{}s".format(time.time() - start))
@@ -132,6 +132,8 @@ class Exp_Basic(object):
             return mase_loss().to(self.device)
         elif loss_name == 'SMAPE':
             return smape_loss().to(self.device)
+        elif loss_name == 'smoothl1':
+            return nn.SmoothL1Loss().to(self.device)
 
     def vali(self, vali_data_set, vali_loader, loss_function):
         self.model.eval()
@@ -349,7 +351,7 @@ class Exp_Basic(object):
         if self.args.pred_mode == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
             target = [36, 291, 85153]
-            plt.figure(dpi=300, figsize=(9, 6))
+            plt.figure(dpi=300, figsize=(15, 10))
             idx = 1
             for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):
                 queueId = batch_idx[0, 0, 0].item()

@@ -9,6 +9,6 @@ class Exp_Transformer(Exp_Basic):
     def _build_model(self):
         args = self.args
         model = Transformer(args.feature_size, args.hidden_size, args.num_layers, args.num_heads, args.dropout,
-                            self.device, args.pre_len, args.timestep)
+                            self.device, args.pre_len, args.timestep, args.output_size, args.use_RevIN)
 
         return model

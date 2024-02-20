@@ -26,17 +26,17 @@ class Config:
     # forecasting task
     timestep = 24  # 时间步长，就是利用多少时间窗口
     output_size = 1  # 只预测CPU
-    feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 12  # 预测长度
+    feature_size = 8  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
+    pre_len = 24  # 预测长度
     inverse = False
 
     # model define
     hidden_size = 64  # 隐层大小
-    num_layers = 2  # RNN的层数
+    num_layers = 3  # RNN的层数
     bidirectional = False
 
     # optimization
-    epochs = 10  # 迭代轮数
+    epochs = 80  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
@@ -47,7 +47,7 @@ class Config:
     use_gpu = True
     gpu = 0
 
-    train_range = 'train'  # 训练集的范围 ['all', 'train']
+    train_range = 'all'  # 训练集的范围 ['all', 'train']
     pred_mode = 'paper'  # 预测模式 ['paper', 'show']
     test_show = 'brief'  # 测试集展示 ['all', 'brief']
 

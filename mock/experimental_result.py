@@ -11,6 +11,8 @@ config = {
 }
 rcParams.update(config)
 
+print("+++++++++++++++++++++")
+
 font_path = 'C:\\Users\\15841\\AppData\\Local\\Microsoft\\Windows\\Fonts\\宋体-粗体.ttf'
 font_manager.fontManager.addfont(font_path)
 prop = font_manager.FontProperties(fname=font_path)

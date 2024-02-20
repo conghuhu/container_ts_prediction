@@ -105,7 +105,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
         if train_mode == 'grid':
             # Best parameters found:  {'colsample_bytree': 1, 'early_stopping_rounds': 10, 'gamma': 0, 'learning_rate': 0.1, 'max_depth': 5, 'min_child_weight': 2, 'n_estimators': 400, 'reg_alpha': 1, 'reg_lambda': 0, 'subsample': 1}
             param_grid = {
-                'n_estimators': [400, 500],
+                'n_estimators': [400, 500, 1000],
                 'max_depth': [i for i in range(3, 11, 2)],
                 'learning_rate': [0.01, 0.05, 0.1],
                 'subsample': [0.5, 0.7, 1],
@@ -142,7 +142,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
                 'num_leaves': [28, 31, 60],  # Adjust based on dataset size and complexity
                 'max_depth': [3, 5, 10, -1],  # -1 means no limit
                 'learning_rate': [0.1, 0.01, 0.05],
-                'n_estimators': [300, 500, 1000],
+                'n_estimators': [100, 300, 500, 1000],
                 'early_stopping_round': [10],
                 'subsample': [0.5, 0.7, 1],
                 'colsample_bytree': [0.5, 0.75, 1],
