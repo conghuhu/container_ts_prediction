@@ -292,7 +292,7 @@ class Exp_Basic(object):
             plt.title('API_ID: {}'.format(36))
             # plt.xticks(fontsize=20)
             # plt.yticks(fontsize=20)
-            plt.legend()
+            plt.legend(loc='upper right')
 
             plt.subplot(3, 1, 2)
             # 绘制历史数据
@@ -387,7 +387,7 @@ class Exp_Basic(object):
                 # 添加标题和轴标签
                 if idx == 1:
                     # 添加图例
-                    plt.legend()
+                    plt.legend(loc='upper right')
                 # plt.xlabel('Time Point')
                 plt.ylabel(args.target)
                 # 在特定索引位置画一条直线
