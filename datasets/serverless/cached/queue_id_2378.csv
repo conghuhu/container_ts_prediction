@@ -1,3 +1,1 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:20eee13b78fa06eaa2b828c009e229778f859cc63995d8b14ae3145e9af3bf0e
-size 64
+timestamp,CPU_USAGE,QUEUE_ID,CU,QUEUE_TYPE,MEM_USAGE,LJOB,RJOB
