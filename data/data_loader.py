@@ -585,14 +585,13 @@ huawei_scaler_y = StandardScaler()
 class Dataset_Huawei(Dataset):
     def __init__(self, args, data_path, size, flag='train',
                  features='S',
-                 target='total_cpu_usage', ratio=0.8, scale=True, scale_type='standard', inverse=False, cols=None,
-                 embed='timeF',
+                 target='total_cpu_usage', scale=True, inverse=False, cols=None,
                  freq='min'):
         self.timestep = size[0]
         self.feature_size = size[1]
         self.pred_len = size[2]
         # init
-        assert flag in ['train', 'test', 'val']
+        assert flag in ['train', 'test', 'vali']
         self.flag = flag
 
         self.features = features
@@ -601,8 +600,6 @@ class Dataset_Huawei(Dataset):
         self.inverse = inverse
         self.cols = cols
         self.data_path = data_path
-        assert scale_type in ['standard', 'minmax']
-        self.scale_type = scale_type
         self.args = args
 
         self.freq = freq
@@ -639,7 +636,7 @@ class Dataset_Huawei(Dataset):
 
         if self.flag == 'train':
             self.dataframe = self.train_frame
-        elif self.flag == 'val':
+        elif self.flag == 'vali':
             self.dataframe = self.vali_frame
         else:
             self.dataframe = self.test_frame
@@ -656,8 +653,8 @@ class Dataset_Huawei(Dataset):
         self.x_tensor = x_tensor
         self.y_tensor = y_tensor
 
-        print("数据集大小：", self.features.shape)
-        print("标签大小：", self.labels.shape)
+        print("{}数据集大小：{}".format(self.flag, self.features.shape))
+        print("{}标签大小：{}".format(self.flag, self.labels.shape))
 
     def preprocess_data(self):
         all_features = []
@@ -693,6 +690,110 @@ class Dataset_Huawei(Dataset):
 
     def inverse_transform_y(self, data):
         return huawei_scaler_y.inverse_transform(data)
+
+
+class Dataset_Huawei_Pred(Dataset):
+    def __init__(self, args, data_path, size, dataset_obj: Dataset, flag='pred',
+                 features='MS', target='CPU_USAGE', scale=True, inverse=False,
+                 cols=None):
+        self.timestep = size[0]
+        self.feature_size = size[1]
+        self.pred_len = size[2]
+        # init
+        assert flag in ['pred']
+        self.flag = flag
+        self.dataset_obj = dataset_obj
+
+        self.features = features
+        self.target = target
+        self.scale = scale
+        self.inverse = inverse
+        self.cols = cols
+        self.data_path = data_path
+        self.args = args
+        self.__read_data__()
+
+    def __read_data__(self):
+        # 读取数据并预处理
+        # 默认第一列时间戳为index
+        data_df = pd.read_csv(self.data_path)
+        # print("读取到本地csv数据： \n", data_df.head())
+        print("加载{}数据集...".format(self.flag))
+        print("数据集shape: {}".format(data_df.shape))
+
+        if self.cols:
+            cols = self.cols.copy()
+            cols.remove(self.target)
+        else:
+            cols = list(data_df.columns)
+            cols.remove(self.target)
+            cols.remove('API_ID')
+            cols.remove('time')
+        data_df = data_df[[self.target] + cols + ['API_ID']]
+
+        if self.features == 'S':
+            # 单元预测，只需要一个元
+            df_data = data_df[[self.target]]
+        else:
+            df_data = data_df
+
+        self.test_frame = df_data[(df_data['day'] >= 45) & (df_data['day'] < 52)]
+        self.dataframe = self.test_frame
+
+        self.api_ids = self.dataframe['API_ID'].unique()
+
+        self.features, self.labels = self.preprocess_data()
+
+        x_tensor: torch.Tensor = torch.from_numpy(self.features).to(torch.float32)
+        y_tensor: torch.Tensor = torch.from_numpy(self.labels).to(torch.float32)
+
+        self.x_tensor = x_tensor
+        self.y_tensor = y_tensor
+
+        print("{}数据集大小：{}".format(self.flag, self.features.shape))
+        print("{}标签大小：{}".format(self.flag, self.labels.shape))
+
+    def preprocess_data(self):
+        all_features = []
+        all_labels = []
+
+        for api_id in tqdm(self.api_ids):
+            api_data = self.dataframe[self.dataframe['API_ID'] == api_id]
+            cols = api_data.columns
+            normalized_data = huawei_scaler_x.transform(api_data.values)
+            api_data_normalized = pd.DataFrame(normalized_data, columns=cols)
+            # Apply sliding window
+            for start in range(0, len(api_data) - self.timestep - self.pred_len + 1, 1):
+                end = start + self.timestep
+                window_data = api_data_normalized.iloc[start:end].values
+                future_data = api_data_normalized.iloc[end:end + self.pred_len].values[:, 0].tolist()
+                all_features.append(window_data)
+                all_labels.append(future_data)
+
+        # Convert lists of arrays to a single numpy array before converting to tensors
+        features_array = np.array(all_features, dtype=np.float32).reshape(-1, self.timestep, self.feature_size)
+        labels_array = np.array(all_labels, dtype=np.float32).reshape(-1, self.pred_len, 1)
+        return features_array, labels_array
+
+    def __getitem__(self, index):
+        print("index: ", index)
+        API_ID = self.dataframe['API_ID'].iloc[index]
+        API_IDS = torch.full((self.timestep, 1), API_ID, dtype=torch.long)
+        return self.x_tensor[index], self.y_tensor[index], API_IDS
+
+    def __len__(self):
+        return len(self.api_ids)
+
+    def inverse_transform(self, data):
+        if torch.is_tensor(data):
+            data = data.cpu().detach().numpy()
+        return self.dataset_obj.inverse_transform(data)
+
+    def inverse_transform_y(self, data):
+        if torch.is_tensor(data):
+            # data = data.cpu().detach().numpy().reshape(-1, 1)
+            data = data.cpu().detach().numpy()
+        return self.dataset_obj.inverse_transform_y(data)
 
 
 if __name__ == '__main__':
@@ -750,6 +851,23 @@ if __name__ == '__main__':
         size=[args.timestep, args.feature_size, args.pre_len],
         features=args.features,
         target=args.target,
-        scale_type=args.scale_type,
+        inverse=args.inverse,
+    )
+    vali_data_set = Dataset_Huawei(
+        args=args,
+        data_path=args.data_path,
+        flag="vali",
+        size=[args.timestep, args.feature_size, args.pre_len],
+        features=args.features,
+        target=args.target,
+        inverse=args.inverse,
+    )
+    test_data_set = Dataset_Huawei(
+        args=args,
+        data_path=args.data_path,
+        flag="test",
+        size=[args.timestep, args.feature_size, args.pre_len],
+        features=args.features,
+        target=args.target,
         inverse=args.inverse,
     )

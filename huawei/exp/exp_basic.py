@@ -9,7 +9,7 @@ from torch import optim, nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from data.data_loader import Dataset_Pred, Dataset_DS
+from data.data_loader import Dataset_Huawei, Dataset_Huawei_Pred
 from utils.losses import mape_loss, mase_loss, smape_loss
 from utils.metrics import write_to_file, metric
 from utils.plot_tools import closePlots, plot_loss_data
@@ -48,37 +48,34 @@ class Exp_Basic(object):
 
     def _load_data(self):
         args = self.args
-        all_data_set = Dataset_DS(
-            args=args,
-            data_path=args.data_path,
-            flag="all",
-            size=[args.timestep, args.feature_size, args.pre_len],
-            features=args.features,
-            target=args.target,
-            scale_type=args.scale_type,
-            inverse=args.inverse,
-        )
-        train_data_set = Dataset_DS(
+        train_data_set = Dataset_Huawei(
             args=args,
             data_path=args.data_path,
             flag="train",
             size=[args.timestep, args.feature_size, args.pre_len],
             features=args.features,
             target=args.target,
-            scale_type=args.scale_type,
             inverse=args.inverse,
         )
-        test_data_set = Dataset_DS(
+        vali_data_set = Dataset_Huawei(
+            args=args,
+            data_path=args.data_path,
+            flag="vali",
+            size=[args.timestep, args.feature_size, args.pre_len],
+            features=args.features,
+            target=args.target,
+            inverse=args.inverse,
+        )
+        test_data_set = Dataset_Huawei(
             args=args,
             data_path=args.data_path,
             flag="test",
             size=[args.timestep, args.feature_size, args.pre_len],
             features=args.features,
             target=args.target,
-            scale_type=args.scale_type,
             inverse=args.inverse,
         )
-        pred_data_set = Dataset_Pred(
+        pred_data_set = Dataset_Huawei_Pred(
             args=args,
             data_path=args.data_path,
             dataset_obj=train_data_set,
@@ -88,17 +85,17 @@ class Exp_Basic(object):
             target=args.target,
             inverse=args.inverse,
         )
-        self.all_data_set = all_data_set
         self.train_data_set = train_data_set
+        self.vali_data_set = vali_data_set
         self.test_data_set = test_data_set
         self.pred_data_set = pred_data_set
 
-        self.all_loader = DataLoader(self.all_data_set,
-                                     self.args.batch_size,
-                                     shuffle=True)
         self.train_loader = DataLoader(self.train_data_set,
                                        self.args.batch_size,
                                        shuffle=True)
+        self.vali_loader = DataLoader(self.vali_data_set,
+                                      self.args.batch_size,
+                                      shuffle=True)
         self.test_loader = DataLoader(self.test_data_set,
                                       self.args.batch_size,
                                       shuffle=False)
@@ -112,8 +109,8 @@ class Exp_Basic(object):
             return self.train_data_set, self.train_loader
         elif flag == 'test':
             return self.test_data_set, self.test_loader
-        elif flag == 'all':
-            return self.all_data_set, self.all_loader
+        elif flag == 'vali':
+            return self.vali_data_set, self.vali_loader
         else:
             return self.pred_data_set, self.pred_loader
 
@@ -148,8 +145,8 @@ class Exp_Basic(object):
         return total_loss
 
     def train(self, setting):
-        train_data_set, train_loader = self._get_data(flag=self.args.train_range)
-        test_data_set, test_loader = self._get_data(flag='test')
+        train_data_set, train_loader = self._get_data(flag='train')
+        vali_data_set, test_loader = self._get_data(flag='vali')
 
         path = os.path.join(self.args.checkpoints, setting)
         if not os.path.exists(path):
@@ -203,7 +200,7 @@ class Exp_Basic(object):
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
-            test_loss = self.vali(test_data_set, test_loader, loss_function)
+            test_loss = self.vali(vali_data_set, test_loader, loss_function)
 
             results_train_loss.append(train_loss)
             results_test_loss.append(test_loss)
@@ -349,12 +346,12 @@ class Exp_Basic(object):
 
         if self.args.pred_mode == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
-            target = [36, 291, 85153]
+            target = [160, 150, 65]
             plt.figure(dpi=300, figsize=(15, 10))
             idx = 1
             for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):
-                queueId = batch_idx[0, 0, 0].item()
-                if queueId not in target:
+                API_ID = batch_idx[0, 0, 0].item()
+                if API_ID not in target:
                     continue
                 history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
                 pred, true = self._process_one_batch(pred_data, batch_x, batch_y, batch_idx)
@@ -391,7 +388,7 @@ class Exp_Basic(object):
                 plt.ylabel(args.target)
                 # 在特定索引位置画一条直线
                 plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
-                plt.title('API_ID: {}'.format(queueId))
+                plt.title('API_ID: {}'.format(API_ID))
                 idx += 1
 
             # plt.suptitle('Past vs Predicted Future Values')
@@ -404,7 +401,7 @@ class Exp_Basic(object):
             return
 
         for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):
-            queueId = batch_idx[0, 0, 0].item()
+            API_ID = batch_idx[0, 0, 0].item()
             history_data: np.ndarray = pred_data.inverse_transform_y(batch_x[:, :, 0].reshape(args.timestep, 1))
             pred, true = self._process_one_batch(pred_data, batch_x, batch_y, batch_idx)
             # pred.shape [batchSize=1, pre_len, 1]
@@ -435,13 +432,13 @@ class Exp_Basic(object):
             plt.legend()
             plt.style.use('ggplot')
             # 添加标题和轴标签
-            plt.title('Past vs Predicted Future Values, QUEUE_ID: {}'.format(queueId))
+            plt.title('Past vs Predicted Future Values, QUEUE_ID: {}'.format(API_ID))
             plt.xlabel('Time Point')
             plt.ylabel(args.target)
             # 在特定索引位置画一条直线
             plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
             # 显示图表
-            plt.savefig(folder_path + '{}_{}_forcast.png'.format(args.target, queueId))
+            plt.savefig(folder_path + '{}_{}_forcast.png'.format(args.target, API_ID))
             # 由于存在限流，只展示前25张图片
             if i < 25:
                 if self.args.run_type == 'ide':
