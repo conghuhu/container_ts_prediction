@@ -35,12 +35,12 @@ class Config:
     individual = True  # 针对DLinear是否为每个变量（通道）单独建立一个线性层
 
     # optimization
-    epochs = 2  # 迭代轮数
+    epochs = 100  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
     loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
-    lradj = 'type1'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
+    lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
     # GPU
     use_gpu = True
