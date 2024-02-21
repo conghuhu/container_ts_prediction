@@ -12,5 +12,5 @@ class Exp_SeqFormer(Exp_Basic):
                           args.num_heads,
                           args.ffn_hidden_size, args.dropout, args.pre_norm, args.output_size, args.pre_len,
                           args.use_RevIN)
-
+        print(model)
         return model

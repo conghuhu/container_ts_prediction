@@ -1,4 +1,4 @@
-from exp.exp_basic import Exp_Basic
+from huawei.exp.exp_basic import Exp_Basic
 from models.DLinear.DLinear import DLinear
 
 
@@ -8,5 +8,6 @@ class Exp_DLinear(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = DLinear(args.timestep, args.feature_size, args.pre_len, args.moving_avg, args.enc_inc, args.individual)
+        model = DLinear(args.timestep, args.feature_size, args.pre_len, args.moving_avg, args.enc_inc, args.individual,
+                        args.use_RevIN)
         return model

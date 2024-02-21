@@ -1,5 +1,8 @@
+import numpy as np
 import torch
 from torch import nn
+
+from models.RevIN.RevIN import RevIN
 
 
 class moving_avg(nn.Module):
@@ -44,7 +47,7 @@ class DLinear(nn.Module):
     Paper link: https://arxiv.org/pdf/2205.13504.pdf
     """
 
-    def __init__(self, timestep, pred_len, moving_avg, enc_inc, individual=False):
+    def __init__(self, timestep,feature_size, pred_len, moving_avg, enc_inc, individual=False, use_RevIN=False):
         """
         individual: Bool, whether shared model among different variates.
         """
@@ -78,6 +81,16 @@ class DLinear(nn.Module):
             self.Linear_Trend.weight = nn.Parameter(
                 (1 / self.seq_len) * torch.ones([self.pred_len, self.seq_len]))
 
+        self.use_RevIN = use_RevIN
+        if use_RevIN:
+            self.revin = RevIN(feature_size)
+        print("Number Parameters: seqformer", self.get_n_params())
+
+    def get_n_params(self):
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        number_params = sum([np.prod(p.size()) for p in model_parameters])
+        return number_params
+
     def encoder(self, x):
         # 季节与时间趋势性分解
         seasonal_init, trend_init = self.decompsition(x)  # seasonal_init: [B, T, D]  trend_init: [B, T, D]
@@ -106,5 +119,9 @@ class DLinear(nn.Module):
 
     def forward(self, x_enc, queue_ids):
         # x_enc 输入shape: [B, T, D]
+        if self.use_RevIN:
+            x = self.revin(x_enc, 'norm')
         dec_out = self.encoder(x_enc)  # dec_out: [B, P, D]
+        if self.use_RevIN:
+            dec_out = self.revin(dec_out, 'denorm')
         return dec_out[:, -self.pred_len:, 0:1]  # [B, P, 1]

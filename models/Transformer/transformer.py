@@ -56,8 +56,8 @@ class Transformer(nn.Module):
             device=device
         )
         self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
-        self.fc = nn.Linear(output_size * hidden_size, output_size)
+        # self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+        # self.fc = nn.Linear(output_size * hidden_size, output_size)
         self.fc_layers = nn.Sequential(
             nn.Linear(timestep * hidden_size, hidden_size),
             nn.ReLU(),
@@ -65,7 +65,7 @@ class Transformer(nn.Module):
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_size, output_size)
+            nn.Linear(hidden_size, pre_len)
         )
 
         if use_RevIN:
@@ -79,8 +79,8 @@ class Transformer(nn.Module):
         return number_params
 
     def forward(self, x, queue_ids):
-        if self.use_RevIN:
-            x = self.revin(x, 'norm')
+        # if self.use_RevIN:
+        #     x = self.revin(x, 'norm')
         # print(x.size())  # [256, 126, 8]
         x = self.input_fc(x)  # [256, 126, 256]
         x = self.pos_emb(x)  # [256, 126, 256]
@@ -90,7 +90,7 @@ class Transformer(nn.Module):
         # x = self.fc1(x)  # [256, 256]
         # output = self.fc2(x)  # [256, 256]
         output = self.fc_layers(x)  # 通过Sequential模块处理
-        if self.use_RevIN:
-            output = self.revin(output, 'denorm')
+        # if self.use_RevIN:
+        #     output = self.revin(output, 'denorm')
 
-        return output[:, -self.pre_len:, 0:1]
+        return output.unsqueeze(-1)

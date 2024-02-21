@@ -5,6 +5,7 @@ import time
 import numpy as np
 import torch
 from matplotlib import pyplot as plt, rcParams
+from matplotlib.ticker import FormatStrFormatter
 from torch import optim, nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -32,6 +33,11 @@ class Exp_Basic(object):
             "font.weight": "normal"
         }
         rcParams.update(config)
+        self.chinese_font = {
+            'family': 'SimSun',
+            'size': 20,
+            'weight': 'normal',
+        }
         print("模型已初始化, 耗时{}s".format(time.time() - start))
 
     def _acquire_device(self):
@@ -147,8 +153,7 @@ class Exp_Basic(object):
     def train(self, setting):
         train_data_set, train_loader = self._get_data(flag='train')
         vali_data_set, vali_loader = self._get_data(flag='vali')
-        test_data_set, test_loader =  self._get_data(flag='test')
-
+        test_data_set, test_loader = self._get_data(flag='test')
 
         path = os.path.join(self.args.checkpoints, setting)
         if not os.path.exists(path):
@@ -210,8 +215,7 @@ class Exp_Basic(object):
             results_vali_loss.append(vali_loss)
             results_test_loss.append(test_loss)
 
-
-            print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {3:.7f}".format(
+            print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
                 epoch + 1, train_steps, train_loss, vali_loss, test_loss))
             early_stopping(vali_loss, self.model, path)
             if early_stopping.early_stop:
@@ -227,7 +231,7 @@ class Exp_Basic(object):
 
         print("Finsh train, total time is: {}".format(time.time() - train_start_time))
 
-        plot_loss_data(results_train_loss, results_vali_loss,results_test_loss, self.args.setting, self.args.run_type)
+        plot_loss_data(results_train_loss, results_vali_loss, results_test_loss, self.args.setting, self.args.run_type)
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
@@ -287,22 +291,22 @@ class Exp_Basic(object):
         if self.args.test_show == 'brief':
             plt.subplot(3, 1, 1)
             # 绘制历史数据
-            plt.plot(labels[13622:14260], label='TrueValue')
+            plt.plot(labels[0:7488], label='TrueValue')
             # 绘制预测数据
-            plt.plot(results[13622:14260], label='Prediction')
+            plt.plot(results[0:7488], label='Prediction')
             plt.ylabel(self.args.target)
-            plt.title('API_ID: {}'.format(36))
+            plt.title('Function_ID: {}'.format(28))
             # plt.xticks(fontsize=20)
             # plt.yticks(fontsize=20)
             plt.legend()
 
             plt.subplot(3, 1, 2)
             # 绘制历史数据
-            plt.plot(labels[16037:17803], label='TrueValue')
+            plt.plot(labels[7488:14976], label='TrueValue')
             # 绘制预测数据
-            plt.plot(results[16037:17803], label='Prediction')
+            plt.plot(results[7488:14976], label='Prediction')
             plt.ylabel(self.args.target)
-            plt.title('API_ID: {}'.format(291))
+            plt.title('API_ID: {}'.format(39))
             # plt.xticks(fontsize=20)
             # plt.yticks(fontsize=20)
 
@@ -352,7 +356,7 @@ class Exp_Basic(object):
 
         if self.args.pred_mode == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
-            target = [160, 150, 65]
+            target = [160, 150, 28]
             plt.figure(dpi=300, figsize=(15, 10))
             idx = 1
             for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):
@@ -374,14 +378,15 @@ class Exp_Basic(object):
                 # true_show_data.shape [timestep+pre_len]
 
                 # 绘图
-                plt.subplot(3, 1, idx)
+                ax = plt.subplot(3, 1, idx)
                 if args.features == 'MS' or args.features == 'S':
                     # print("true_show_data: \n", true_show_data)
                     # print("pred data: \n", pred)
-                    plt.plot(range(len(true_show_data)), true_show_data,
-                             label='True Values')
-                    plt.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
-                             label='Predicted Values')
+                    ax.plot(range(len(true_show_data)), true_show_data,
+                            label='真实值')
+                    ax.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
+                            label='预测值')
+                    ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
                 else:
                     print('未实现多元预测多元的可视化')
                     return
@@ -389,17 +394,17 @@ class Exp_Basic(object):
                 # 添加标题和轴标签
                 if idx == 1:
                     # 添加图例
-                    plt.legend()
+                    ax.legend(prop=self.chinese_font, loc='upper left')
                 # plt.xlabel('Time Point')
-                plt.ylabel(args.target)
+                ax.set_ylabel('CPU使用率', self.chinese_font)
                 # 在特定索引位置画一条直线
-                plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
-                plt.title('API_ID: {}'.format(API_ID))
+                ax.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
+                ax.set_title('云函数ID: {}'.format(API_ID), self.chinese_font)
                 idx += 1
 
             # plt.suptitle('Past vs Predicted Future Values')
             plt.tight_layout()
-            plt.savefig(folder_path + '{}_forcast_paper.svg'.format(args.target), format='svg', dpi=1000,
+            plt.savefig(folder_path + '{}_forcast_paper.svg'.format(args.target), format='svg', dpi=600,
                         bbox_inches='tight')
             if self.args.run_type == 'ide':
                 plt.show()

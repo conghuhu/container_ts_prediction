@@ -622,6 +622,7 @@ class Dataset_Huawei(Dataset):
             cols.remove(self.target)
             cols.remove('API_ID')
             cols.remove('time')
+            cols.remove('time_period')
         data_df = data_df[[self.target] + cols + ['API_ID']]
 
         if self.features == 'S':
@@ -729,6 +730,7 @@ class Dataset_Huawei_Pred(Dataset):
             cols.remove(self.target)
             cols.remove('API_ID')
             cols.remove('time')
+            cols.remove('time_period')
         data_df = data_df[[self.target] + cols + ['API_ID']]
 
         if self.features == 'S':

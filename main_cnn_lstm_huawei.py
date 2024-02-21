@@ -1,8 +1,9 @@
 import argparse
 
-from huawei.exp.exp_seqformer import Exp_SeqFormer
+from huawei.exp.exp_cnn_lstm import Exp_CNN_LSTM
 
-parser = argparse.ArgumentParser(description='SeqFormer time series Forecasting')
+parser = argparse.ArgumentParser(description='CNN_LSTM_Attention time series Forecasting')
+
 parser.add_argument('--mode', type=str, default='all',
                     help='mode of run, options: [all, train, test, pred]')
 parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='checkpoints path')
@@ -12,8 +13,8 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    model_name = 'seqformer'  # 模型名称
-    save_path = '../checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
+    model_name = 'cnn_lstm_att'  # 模型名称
+    save_path = './checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
     data_path = './datasets/huawei/data.csv'
@@ -24,27 +25,25 @@ class Config:
 
     # forecasting task
     timestep = 144  # 时间步长，就是利用多少时间窗口
-    output_size = 18  # 只预测CPU
-    feature_size = 18  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 144  # 预测长度
+    feature_size = 18  # 每个步长对应的特征数量
+    output_size = 144  # 多输出任务，最终输出大小，预测未来几个时间步
+    pre_len = output_size  # 预测长度
     inverse = False
 
     # model define
-    hidden_size = 32  # 隐层大小
-    enc_layers = 1
-    dec_layers = 1
-    ffn_hidden_size = 8 * hidden_size  # FFN隐层大小
-    num_heads = 2
+    hidden_size = 64  # 隐层大小
+    num_layers = 2  # RNN的层数
+    bidirectional = False
+    out_channels = 64  # CNN输出通道
+    num_heads = 2  # 注意力机制头的数量
     dropout = 0.1
-    pre_norm = False
-    use_RevIN = False
 
     # optimization
     epochs = 100  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
-    loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
+    loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
     # GPU
@@ -54,14 +53,15 @@ class Config:
     pred_mode = 'paper'  # 预测模式 ['paper', 'show']
     test_show = 'brief'  # 测试集展示 ['all', 'brief']
 
-    run_type = args.run_type
+    run_type = args.run_type  # 运行模式 ['shell', 'ide']， shell模式不show图片
 
 
 config = Config()
 
 # setting record of experiments
-setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_per_norm{}_revin{}_loss{}'.format(
+setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_oc{}_bi{}'.format(
     config.model_name,
+    config.features,
     config.timestep,
     config.feature_size,
     config.output_size,
@@ -69,18 +69,13 @@ setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_d
     config.epochs,
     config.learning_rate,
     config.batch_size,
+    config.num_layers,
     config.hidden_size,
-    config.enc_layers,
-    config.dec_layers,
-    config.num_heads,
-    config.dropout,
-    config.ffn_hidden_size,
-    config.pre_norm,
-    config.use_RevIN,
-    config.loss_name)
+    config.out_channels,
+    config.bidirectional)
 
 config.setting = setting
-exp = Exp_SeqFormer(config)
+exp = Exp_CNN_LSTM(config)
 
 if args.mode == 'all' or args.mode == 'train':
     print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
