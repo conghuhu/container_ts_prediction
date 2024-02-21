@@ -496,6 +496,9 @@ class SeqFormer(nn.Module):
         # x.shape(batch_size, timeStep, feature_size)
         batch_size = x.shape[0]
 
+        if self.use_RevIN:
+            x = self.revin(x, 'norm')
+
         # 季节与时间趋势性分解
         seasonal_init, trend_init = self.decompsition(x)  # seasonal_init: [B, T, D]  trend_init: [B, T, D]
         # 将维度索引2与维度索引1交换
@@ -505,15 +508,13 @@ class SeqFormer(nn.Module):
 
         x = seasonal_init
 
-        if self.use_RevIN:
-            x = self.revin(x, 'norm')
-
         # timeStep, batch_size, feature_size
         x = x.transpose(1, 0)
 
         # timeStep, batch_size, hidden_size
-        x = self.fc_fuse(self.fc_cpu(x[:, :, 0].unsqueeze(-1)) + self.fc_all(x))
-        # x = self.fc_input(x)
+        # x = self.fc_fuse(self.fc_cpu(x[:, :, 0].unsqueeze(-1)) + self.fc_all(x))
+        # 消融实验一
+        x = self.fc_input(x)
         x_pos = self.x_pos(x)
 
         # timeStep, batch_size, hidden_size

@@ -30,14 +30,14 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 32  # 隐层大小
+    hidden_size = 64  # 隐层大小
     enc_layers = 1
     dec_layers = 1
-    ffn_hidden_size = 8 * hidden_size  # FFN隐层大小
+    ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
     pre_norm = False
-    use_RevIN = False
+    use_RevIN = True
 
     # optimization
     epochs = 100  # 迭代轮数
