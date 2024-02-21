@@ -16,7 +16,7 @@ class Config:
     save_path = '../checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
-    data_path = '../datasets/huawei/data2.csv'
+    data_path = 'datasets/huawei/data2.csv'
     features = 'MS'  # 三个选项M，MS，S。分别是多元预测多元，多元预测单元，单元预测单元
     target = 'total_cpu_usage'  # 预测目标
     checkpoints = args.checkpoints
