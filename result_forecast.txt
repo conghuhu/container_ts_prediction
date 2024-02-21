@@ -451,3 +451,12 @@ mse: 0.5595995783805847, mae: 0.2631281614303589, rmse: 0.748063862323761, mape:
 seqformer_ts24_fs12_os1_pl24_epoch2_lr0.001_bs256_hs64_el2_dl1_nh2_dp0.1_ffn512_per_normFalse_revinFalse_trall  
 mse: 0.5586569905281067, mae: 0.2654995322227478, rmse: 0.747433602809906, mape: 0.8792872428894043, mspe: 7.597255706787109
 
+group_id_DLinear_ftMS_ts96_fs12_pl24_epoch2_lr0.001_bs256_enc12_mavg25_individualTrue_losssmoothl1_trtrain  
+mse: 0.5774011015892029, mae: 0.2899618148803711, rmse: 0.7598691582679749, mape: 1.0017608404159546, mspe: 11.080641746520996
+
+group_id_DLinear_ftMS_ts96_fs12_pl24_epoch2_lr0.001_bs256_enc12_mavg25_individualFalse_losssmoothl1_trtrain  
+mse: 0.576683759689331, mae: 0.28569725155830383, rmse: 0.7593969702720642, mape: 1.013256549835205, mspe: 11.700749397277832
+
+group_id_DLinear_ftMS_ts96_fs12_pl24_epoch2_lr0.001_bs256_enc12_mavg25_individualTrue_losssmoothl1_trtrain  
+mse: 0.579331636428833, mae: 0.28360119462013245, rmse: 0.761138379573822, mape: 1.0238970518112183, mspe: 11.881220817565918
+

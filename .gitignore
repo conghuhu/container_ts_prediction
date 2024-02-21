@@ -166,4 +166,5 @@ test.py
 
 borg_traces_data.csv
 
-huawei/private_dataset/
+/datasets/huawei/private_dataset/
+/datasets/huawei/

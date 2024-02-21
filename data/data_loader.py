@@ -5,11 +5,12 @@ import pandas as pd
 import torch
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 from utils.tools import csv_to_torch, torch_to_csv
 
 
-class Dataset_Custom(Dataset):
+class Dataset_DS(Dataset):
     def __init__(self, args, data_path, size, flag='train',
                  features='S',
                  target='CPU_USAGE', ratio=0.8, scale=True, scale_type='standard', inverse=False, cols=None,
@@ -575,3 +576,180 @@ class Dataset_Lastest(Dataset):
         if torch.is_tensor(data):
             data = data.cpu().detach().numpy()
         return self.scaler_y.inverse_transform(data)
+
+
+huawei_scaler_x = StandardScaler()
+huawei_scaler_y = StandardScaler()
+
+
+class Dataset_Huawei(Dataset):
+    def __init__(self, args, data_path, size, flag='train',
+                 features='S',
+                 target='total_cpu_usage', ratio=0.8, scale=True, scale_type='standard', inverse=False, cols=None,
+                 embed='timeF',
+                 freq='min'):
+        self.timestep = size[0]
+        self.feature_size = size[1]
+        self.pred_len = size[2]
+        # init
+        assert flag in ['train', 'test', 'val']
+        self.flag = flag
+
+        self.features = features
+        self.target = target
+        self.scale = scale
+        self.inverse = inverse
+        self.cols = cols
+        self.data_path = data_path
+        assert scale_type in ['standard', 'minmax']
+        self.scale_type = scale_type
+        self.args = args
+
+        self.freq = freq
+
+        self.__read_data__()
+
+    def __read_data__(self):
+        # 读取数据并预处理
+        # 默认第一列时间戳为index
+        data_df = pd.read_csv(self.data_path)
+        # print("读取到本地csv数据： \n", data_df.head())
+        print("加载{}数据集...".format(self.flag))
+        print("数据集shape: {}".format(data_df.shape))
+
+        if self.cols:
+            cols = self.cols.copy()
+            cols.remove(self.target)
+        else:
+            cols = list(data_df.columns)
+            cols.remove(self.target)
+            cols.remove('API_ID')
+            cols.remove('time')
+        data_df = data_df[[self.target] + cols + ['API_ID']]
+
+        if self.features == 'S':
+            # 单元预测，只需要一个元
+            df_data = data_df[[self.target]]
+        else:
+            df_data = data_df
+
+        self.train_frame = df_data[(df_data['day'] >= 0) & (df_data['day'] < 38)]
+        self.vali_frame = df_data[(df_data['day'] >= 38) & (df_data['day'] < 45)]
+        self.test_frame = df_data[(df_data['day'] >= 45) & (df_data['day'] < 52)]
+
+        if self.flag == 'train':
+            self.dataframe = self.train_frame
+        elif self.flag == 'val':
+            self.dataframe = self.vali_frame
+        else:
+            self.dataframe = self.test_frame
+
+        if self.scale:
+            huawei_scaler_x.fit(self.train_frame.values)
+            huawei_scaler_y.fit_transform(np.array(self.train_frame[self.target]).reshape(-1, 1))
+
+        self.features, self.labels = self.preprocess_data()
+
+        x_tensor: torch.Tensor = torch.from_numpy(self.features).to(torch.float32)
+        y_tensor: torch.Tensor = torch.from_numpy(self.labels).to(torch.float32)
+
+        self.x_tensor = x_tensor
+        self.y_tensor = y_tensor
+
+        print("数据集大小：", self.features.shape)
+        print("标签大小：", self.labels.shape)
+
+    def preprocess_data(self):
+        all_features = []
+        all_labels = []
+        api_ids = self.dataframe['API_ID'].unique()
+        for api_id in tqdm(api_ids):
+            api_data = self.dataframe[self.dataframe['API_ID'] == api_id]
+            cols = api_data.columns
+            normalized_data = huawei_scaler_x.transform(api_data.values)
+            api_data_normalized = pd.DataFrame(normalized_data, columns=cols)
+            # Apply sliding window
+            for start in range(0, len(api_data) - self.timestep - self.pred_len + 1, 1):
+                end = start + self.timestep
+                window_data = api_data_normalized.iloc[start:end].values
+                future_data = api_data_normalized.iloc[end:end + self.pred_len].values[:, 0].tolist()
+                all_features.append(window_data)
+                all_labels.append(future_data)
+
+        # Convert lists of arrays to a single numpy array before converting to tensors
+        features_array = np.array(all_features, dtype=np.float32).reshape(-1, self.timestep, self.feature_size)
+        labels_array = np.array(all_labels, dtype=np.float32).reshape(-1, self.pred_len, 1)
+        return features_array, labels_array
+
+    def __len__(self):
+        return len(self.features)
+
+    def __getitem__(self, idx):
+        queue_ids = torch.full((len(self.x_tensor[idx]), 1), 0, dtype=torch.long)
+        return self.x_tensor[idx], self.y_tensor[idx], queue_ids
+
+    def inverse_transform(self, data):
+        return huawei_scaler_x.inverse_transform(data)
+
+    def inverse_transform_y(self, data):
+        return huawei_scaler_y.inverse_transform(data)
+
+
+if __name__ == '__main__':
+    class Config:
+        # basic config
+        model_name = 'seqformer'  # 模型名称
+        save_path = './checkpoints/{}.pth'.format(model_name)  # 最优模型保存路径
+
+        # data loader
+        data_path = '../datasets/huawei/data2.csv'
+        features = 'MS'  # 三个选项M，MS，S。分别是多元预测多元，多元预测单元，单元预测单元
+        target = 'total_cpu_usage'  # 预测目标
+        checkpoints = './checkpoints/'
+        scale_type = 'standard'  # 标准化类型 "standard" "minmax"
+
+        # forecasting task
+        timestep = 96  # 时间步长，就是利用多少时间窗口
+        output_size = 14  # 只预测CPU
+        feature_size = 14  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
+        pre_len = 24  # 预测长度
+        inverse = False
+
+        # model define
+        hidden_size = 64  # 隐层大小
+        enc_layers = 2
+        dec_layers = 1
+        ffn_hidden_size = 8 * hidden_size  # FFN隐层大小
+        num_heads = 2
+        dropout = 0.1
+        pre_norm = False
+        use_RevIN = True
+
+        # optimization
+        epochs = 100  # 迭代轮数
+        batch_size = 256  # 批次大小
+        patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
+        learning_rate = 0.001  # 学习率
+        loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
+        lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
+
+        # GPU
+        use_gpu = True
+        gpu = 0
+
+        train_range = 'train'  # 训练集的范围 ['all', 'train']
+        pred_mode = 'paper'  # 预测模式 ['paper', 'show']
+        test_show = 'brief'  # 测试集展示 ['all', 'brief']
+
+
+    args = Config()
+    train_data_set = Dataset_Huawei(
+        args=args,
+        data_path=args.data_path,
+        flag="train",
+        size=[args.timestep, args.feature_size, args.pre_len],
+        features=args.features,
+        target=args.target,
+        scale_type=args.scale_type,
+        inverse=args.inverse,
+    )

@@ -9,7 +9,7 @@ from torch import optim, nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from data.data_loader import Dataset_Pred, Dataset_Custom
+from data.data_loader import Dataset_Pred, Dataset_DS
 from utils.losses import mape_loss, mase_loss, smape_loss
 from utils.metrics import write_to_file, metric
 from utils.plot_tools import closePlots, plot_loss_data
@@ -49,7 +49,7 @@ class Exp_Basic(object):
 
     def _load_data(self):
         args = self.args
-        all_data_set = Dataset_Custom(
+        all_data_set = Dataset_DS(
             args=args,
             data_path=args.data_path,
             flag="all",
@@ -59,7 +59,7 @@ class Exp_Basic(object):
             scale_type=args.scale_type,
             inverse=args.inverse,
         )
-        train_data_set = Dataset_Custom(
+        train_data_set = Dataset_DS(
             args=args,
             data_path=args.data_path,
             flag="train",
@@ -69,7 +69,7 @@ class Exp_Basic(object):
             scale_type=args.scale_type,
             inverse=args.inverse,
         )
-        test_data_set = Dataset_Custom(
+        test_data_set = Dataset_DS(
             args=args,
             data_path=args.data_path,
             flag="test",
