@@ -9,6 +9,43 @@ from torch.nn import functional as F
 from models.RevIN.RevIN import RevIN
 
 
+class moving_avg(nn.Module):
+    """
+    Moving average block to highlight the trend of time series
+    """
+
+    def __init__(self, kernel_size, stride):
+        super(moving_avg, self).__init__()
+        self.kernel_size = kernel_size
+        self.avg = nn.AvgPool1d(kernel_size=kernel_size, stride=stride, padding=0)
+
+    def forward(self, x):
+        # padding on the both ends of time series
+        front = x[:, 0:1, :].repeat(1, (self.kernel_size - 1) // 2, 1)
+        end = x[:, -1:, :].repeat(1, (self.kernel_size - 1) // 2, 1)
+        x = torch.cat([front, x, end], dim=1)
+        x = self.avg(x.permute(0, 2, 1))
+        x = x.permute(0, 2, 1)
+        return x
+
+
+class series_decomp(nn.Module):
+    """
+    Series decomposition block
+    """
+
+    def __init__(self, kernel_size):
+        super(series_decomp, self).__init__()
+        self.moving_avg = moving_avg(kernel_size, stride=1)
+
+    def forward(self, x):
+        # 滑动平均
+        moving_mean = self.moving_avg(x)
+        # 季节趋势性
+        res = x - moving_mean
+        return res, moving_mean
+
+
 class ConvolutionModule(nn.Module):
     def __init__(self,
                  channels: int,
@@ -403,11 +440,16 @@ class Decoder(nn.Module):
 class SeqFormer(nn.Module):
     def __init__(self, timestep, feature_size, hidden_size, enc_layers, dec_layers, num_heads, ffn_hidden_size, dropout,
                  pre_norm,
-                 output_size, pre_len, use_RevIN=False):
+                 output_size, pred_len, use_RevIN=False, moving_avg=25):
         super(SeqFormer, self).__init__()
 
         self.use_RevIN = use_RevIN
-        self.pre_len = pre_len
+        self.pre_len = pred_len
+
+        self.decompsition = series_decomp(moving_avg)
+        self.Linear_Trend = nn.Linear(timestep, pred_len)
+        self.Linear_Trend.weight = nn.Parameter(
+            (1 / timestep) * torch.ones([pred_len, timestep]))
 
         self.fc_all = nn.Linear(feature_size, hidden_size)
         self.fc_cpu = nn.Linear(1, hidden_size)
@@ -424,8 +466,8 @@ class SeqFormer(nn.Module):
         )
         self.x_pos = PositionalEncoding(hidden_size, max_len=timestep)
 
-        self.output = nn.Embedding(pre_len, hidden_size)
-        self.output_pos = nn.Embedding(pre_len, hidden_size)
+        self.output = nn.Embedding(pred_len, hidden_size)
+        self.output_pos = nn.Embedding(pred_len, hidden_size)
 
         self.decoder = Decoder(
             num_layers=dec_layers,
@@ -453,6 +495,15 @@ class SeqFormer(nn.Module):
     def forward(self, x, queue_ids):
         # x.shape(batch_size, timeStep, feature_size)
         batch_size = x.shape[0]
+
+        # 季节与时间趋势性分解
+        seasonal_init, trend_init = self.decompsition(x)  # seasonal_init: [B, T, D]  trend_init: [B, T, D]
+        # 将维度索引2与维度索引1交换
+        trend_init = trend_init.permute(0, 2, 1)  # seasonal_init: [B, D, T]  trend_init: [B, D, T]
+        trend_output = self.Linear_Trend(trend_init)  # trend_output: [B, D, P]
+        trend_output = trend_output.permute(0, 2, 1)  # trend_output: [B, P, D]
+
+        x = seasonal_init
 
         if self.use_RevIN:
             x = self.revin(x, 'norm')
@@ -483,6 +534,9 @@ class SeqFormer(nn.Module):
 
         # batch_size, pre_len, output_size
         output = output.transpose(1, 0)
+
+        # 将季节性与趋势性相加
+        output = output + trend_output  # output: [B, P, D]
 
         if self.use_RevIN:
             output = self.revin(output, 'denorm')
