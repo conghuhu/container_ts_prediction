@@ -32,7 +32,7 @@ class Config:
     # model define
     enc_inc = feature_size  # encoder input size
     moving_avg = 25  # 移动平均窗口
-    individual = True  # 针对DLinear是否为每个变量（通道）单独建立一个线性层
+    individual = False  # 针对DLinear是否为每个变量（通道）单独建立一个线性层
     use_RevIN = False
 
     # optimization

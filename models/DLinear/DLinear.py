@@ -47,7 +47,7 @@ class DLinear(nn.Module):
     Paper link: https://arxiv.org/pdf/2205.13504.pdf
     """
 
-    def __init__(self, timestep,feature_size, pred_len, moving_avg, enc_inc, individual=False, use_RevIN=False):
+    def __init__(self, timestep, feature_size, pred_len, moving_avg, enc_inc, individual=False, use_RevIN=False):
         """
         individual: Bool, whether shared model among different variates.
         """

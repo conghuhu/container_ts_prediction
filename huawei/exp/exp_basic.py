@@ -356,7 +356,8 @@ class Exp_Basic(object):
 
         if self.args.pred_mode == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
-            target = [160, 150, 28]
+            target = [72, 150, 28]
+            # target = [147, 72, 150]
             plt.figure(dpi=300, figsize=(15, 10))
             idx = 1
             for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):

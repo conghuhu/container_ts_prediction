@@ -32,10 +32,12 @@ class Config:
 
     # model define
     hidden_size = 32  # 隐层大小
-    num_layers = 2  # encoder层数
+    num_layers = 1  # encoder层数
+    dec_layers = 1
     num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
     dropout = 0.1
-    use_RevIN = False
+    forward_expansion = 8
+    use_RevIN = True
 
     # optimization
     epochs = 100  # 迭代轮数
@@ -58,7 +60,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_rl{}_nh{}_dp{}_loss{}_revin{}'.format(
+setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_rl{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}'.format(
     config.model_name,
     config.features,
     config.timestep,
@@ -70,10 +72,13 @@ setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_rl{}_nh{}
     config.batch_size,
     config.hidden_size,
     config.num_layers,
+    config.dec_layers,
     config.num_heads,
     config.dropout,
+    config.forward_expansion,
     config.loss_name,
     config.use_RevIN)
+
 config.setting = setting
 exp = Exp_Transformer(config)
 

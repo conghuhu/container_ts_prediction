@@ -8,7 +8,7 @@ class Exp_LSTM(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = MultivariateMultiStepLSTM(args.feature_size, args.hidden_size, args.output_size, args.num_layers,
+        model = MultivariateMultiStepLSTM(args.feature_size, args.hidden_size, args.output_size, args.enc_layers,
                                           args.bidirectional)
         print(model)
         return model

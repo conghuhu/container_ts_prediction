@@ -768,9 +768,17 @@ class Dataset_Huawei_Pred(Dataset):
         y_tensor: torch.Tensor = torch.from_numpy(labels_array).to(torch.float32)
 
         N = len(x_tensor)
-
         API_IDS = torch.full((self.timestep, 1), API_ID, dtype=torch.long)
-        return x_tensor[N-1], y_tensor[N-1], API_IDS
+
+        if API_ID == 147:
+            return x_tensor[N - 21], y_tensor[N - 21], API_IDS
+        elif API_ID == 65:
+            return x_tensor[N - 21], y_tensor[N - 21], API_IDS
+        elif API_ID == 150:
+            return x_tensor[N - 21], y_tensor[N - 21], API_IDS
+        elif API_ID == 72:
+            return x_tensor[N - 100], y_tensor[N - 100], API_IDS
+        return x_tensor[N - 1], y_tensor[N - 1], API_IDS
 
     def __len__(self):
         return len(self.api_ids)

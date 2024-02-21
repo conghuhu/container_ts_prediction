@@ -31,9 +31,9 @@ class PositionalEncoding(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, feature_size, hidden_size, num_layers, num_heads, dropout, device, pre_len, timestep,
+    def __init__(self, feature_size, hidden_size, num_layers, dec_layers, num_heads, dropout, device, pre_len, timestep,
                  output_size,
-                 use_RevIN=False):
+                 use_RevIN=False, forward_expansion=8):
         super(Transformer, self).__init__()
         self.pre_len = pre_len
         self.use_RevIN = use_RevIN
@@ -42,7 +42,7 @@ class Transformer(nn.Module):
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=hidden_size,
             nhead=num_heads,
-            dim_feedforward=4 * hidden_size,
+            dim_feedforward=forward_expansion * hidden_size,
             batch_first=True,
             dropout=dropout,
             device=device
@@ -51,22 +51,24 @@ class Transformer(nn.Module):
             d_model=hidden_size,
             nhead=num_heads,
             dropout=dropout,
-            dim_feedforward=4 * hidden_size,
+            dim_feedforward=forward_expansion * hidden_size,
             batch_first=True,
             device=device
         )
+        self.output = nn.Embedding(pre_len, hidden_size)
+        self.output_pos = nn.Embedding(pre_len, hidden_size)
         self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        # self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
-        # self.fc = nn.Linear(output_size * hidden_size, output_size)
-        self.fc_layers = nn.Sequential(
-            nn.Linear(timestep * hidden_size, hidden_size),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_size, hidden_size),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_size, pre_len)
-        )
+        self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=dec_layers)
+        self.fc = nn.Linear(hidden_size, output_size)
+        # self.fc_layers = nn.Sequential(
+        #     nn.Linear(timestep * hidden_size, hidden_size),
+        #     nn.ReLU(),
+        #     nn.Dropout(dropout),
+        #     nn.Linear(hidden_size, hidden_size),
+        #     nn.ReLU(),
+        #     nn.Dropout(dropout),
+        #     nn.Linear(hidden_size, pre_len)
+        # )
 
         if use_RevIN:
             self.revin = RevIN(feature_size)
@@ -79,18 +81,28 @@ class Transformer(nn.Module):
         return number_params
 
     def forward(self, x, queue_ids):
-        # if self.use_RevIN:
-        #     x = self.revin(x, 'norm')
+        batch_size = x.shape[0]
+        if self.use_RevIN:
+            x = self.revin(x, 'norm')
         # print(x.size())  # [256, 126, 8]
         x = self.input_fc(x)  # [256, 126, 256]
         x = self.pos_emb(x)  # [256, 126, 256]
         x = self.encoder(x)  # [256, 126, 256]
-        # 不经过解码器
-        x = x.flatten(start_dim=1)  # [B, T*hidden_size]
-        # x = self.fc1(x)  # [256, 256]
-        # output = self.fc2(x)  # [256, 256]
-        output = self.fc_layers(x)  # 通过Sequential模块处理
-        # if self.use_RevIN:
-        #     output = self.revin(output, 'denorm')
 
-        return output.unsqueeze(-1)
+        # output_size, batch_size, hidden_size
+        output = self.output.weight.unsqueeze(1).repeat(1, batch_size, 1)
+        output_pos = self.output_pos.weight.unsqueeze(1).repeat(1, batch_size, 1)
+        output = output.permute(1, 0, 2)
+        output_pos = output_pos.permute(1, 0, 2)
+
+        output = self.decoder(output, x)
+        output = self.fc(output)
+
+        # 不经过解码器
+        # x = x.flatten(start_dim=1)  # [B, T*hidden_size]
+        # output = self.fc_layers(x)  # 通过Sequential模块处理
+
+        if self.use_RevIN:
+            output = self.revin(output, 'denorm')
+
+        return output[:, -self.pre_len:, 0:1]

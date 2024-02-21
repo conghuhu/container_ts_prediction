@@ -8,7 +8,8 @@ class Exp_Transformer(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = Transformer(args.feature_size, args.hidden_size, args.num_layers, args.num_heads, args.dropout,
+        model = Transformer(args.feature_size, args.hidden_size, args.enc_layers, args.dec_layers, args.num_heads,
+                            args.dropout,
                             self.device, args.pre_len, args.timestep, args.output_size, args.use_RevIN)
 
         return model
