@@ -31,10 +31,10 @@ class Config:
 
     # model define
     hidden_size = 64  # 隐层大小
-    enc_layers = 2
+    enc_layers = 1
     dec_layers = 1
-    ffn_hidden_size = 8 * hidden_size  # FFN隐层大小
-    num_heads = 2
+    ffn_hidden_size = 4 * hidden_size  # FFN隐层大小
+    num_heads = 4
     dropout = 0.1
     pre_norm = False
     use_RevIN = True
@@ -44,7 +44,7 @@ class Config:
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
-    loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
+    loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
     # GPU
@@ -61,7 +61,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_per_norm{}_revin{}_tr{}'.format(
+setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_per_norm{}_revin{}_loss{}_tr{}'.format(
     config.model_name,
     config.timestep,
     config.feature_size,
@@ -78,6 +78,7 @@ setting = '{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn
     config.ffn_hidden_size,
     config.pre_norm,
     config.use_RevIN,
+    config.loss_name,
     config.train_range)
 
 config.setting = setting

@@ -224,7 +224,7 @@ class Exp_Basic(object):
 
         print("Finsh train, total time is: {}".format(time.time() - train_start_time))
 
-        plot_loss_data(results_train_loss, results_test_loss, self.args.setting, self.args.run_type)
+        plot_loss_data(results_train_loss, results_test_loss, results_test_loss, self.args.setting, self.args.run_type)
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
