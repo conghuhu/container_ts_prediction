@@ -742,44 +742,33 @@ class Dataset_Huawei_Pred(Dataset):
 
         self.api_ids = self.dataframe['API_ID'].unique()
 
-        self.features, self.labels = self.preprocess_data()
-
-        x_tensor: torch.Tensor = torch.from_numpy(self.features).to(torch.float32)
-        y_tensor: torch.Tensor = torch.from_numpy(self.labels).to(torch.float32)
-
-        self.x_tensor = x_tensor
-        self.y_tensor = y_tensor
-
-        print("{}数据集大小：{}".format(self.flag, self.features.shape))
-        print("{}标签大小：{}".format(self.flag, self.labels.shape))
-
-    def preprocess_data(self):
+    def __getitem__(self, index):
+        API_ID = self.api_ids[index]
+        api_data = self.dataframe[self.dataframe['API_ID'] == API_ID]
         all_features = []
         all_labels = []
 
-        for api_id in tqdm(self.api_ids):
-            api_data = self.dataframe[self.dataframe['API_ID'] == api_id]
-            cols = api_data.columns
-            normalized_data = huawei_scaler_x.transform(api_data.values)
-            api_data_normalized = pd.DataFrame(normalized_data, columns=cols)
-            # Apply sliding window
-            for start in range(0, len(api_data) - self.timestep - self.pred_len + 1, 1):
-                end = start + self.timestep
-                window_data = api_data_normalized.iloc[start:end].values
-                future_data = api_data_normalized.iloc[end:end + self.pred_len].values[:, 0].tolist()
-                all_features.append(window_data)
-                all_labels.append(future_data)
+        cols = api_data.columns
+        normalized_data = huawei_scaler_x.transform(api_data.values)
+        api_data_normalized = pd.DataFrame(normalized_data, columns=cols)
+        # Apply sliding window
+        for start in range(0, len(api_data) - self.timestep - self.pred_len + 1, 1):
+            end = start + self.timestep
+            window_data = api_data_normalized.iloc[start:end].values
+            future_data = api_data_normalized.iloc[end:end + self.pred_len].values[:, 0].tolist()
+            all_features.append(window_data)
+            all_labels.append(future_data)
 
         # Convert lists of arrays to a single numpy array before converting to tensors
         features_array = np.array(all_features, dtype=np.float32).reshape(-1, self.timestep, self.feature_size)
         labels_array = np.array(all_labels, dtype=np.float32).reshape(-1, self.pred_len, 1)
-        return features_array, labels_array
+        x_tensor: torch.Tensor = torch.from_numpy(features_array).to(torch.float32)
+        y_tensor: torch.Tensor = torch.from_numpy(labels_array).to(torch.float32)
 
-    def __getitem__(self, index):
-        print("index: ", index)
-        API_ID = self.dataframe['API_ID'].iloc[index]
+        N = len(x_tensor)
+
         API_IDS = torch.full((self.timestep, 1), API_ID, dtype=torch.long)
-        return self.x_tensor[index], self.y_tensor[index], API_IDS
+        return x_tensor[N-1], y_tensor[N-1], API_IDS
 
     def __len__(self):
         return len(self.api_ids)
@@ -796,6 +785,7 @@ class Dataset_Huawei_Pred(Dataset):
         return self.dataset_obj.inverse_transform_y(data)
 
 
+# only for manual test
 if __name__ == '__main__':
     class Config:
         # basic config

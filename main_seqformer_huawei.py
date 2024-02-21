@@ -16,7 +16,7 @@ class Config:
     save_path = '../checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
-    data_path = 'datasets/huawei/data2.csv'
+    data_path = './datasets/huawei/data2.csv'
     features = 'MS'  # 三个选项M，MS，S。分别是多元预测多元，多元预测单元，单元预测单元
     target = 'total_cpu_usage'  # 预测目标
     checkpoints = args.checkpoints
@@ -40,8 +40,8 @@ class Config:
     use_RevIN = True
 
     # optimization
-    epochs = 2  # 迭代轮数
-    batch_size = 16  # 批次大小
+    epochs = 100  # 迭代轮数
+    batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
     loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']

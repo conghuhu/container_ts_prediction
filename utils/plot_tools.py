@@ -25,11 +25,12 @@ font2 = {
 }
 
 
-def plot_loss_data(train_loss, test_loss, setting, run_type):
+def plot_loss_data(train_loss,vali_loss, test_loss, setting, run_type):
     # 使用Matplotlib绘制线图
     plt.figure()
     plt.figure(figsize=(10, 5))
     plt.plot(train_loss, marker='o', label="train_loss")
+    plt.plot(vali_loss, marker='o', label="vali_loss")
     plt.plot(test_loss, marker='o', label="test_loss")
 
     # 添加标题
