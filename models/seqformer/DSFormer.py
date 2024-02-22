@@ -12,7 +12,7 @@ from models.seqformer.seqformer import series_decomp
 class DsFormer(nn.Module):
     def __init__(self, timestep, feature_size, hidden_size, enc_layers, num_heads, ffn_hidden_size, dropout, pred_len,
                  use_RevIN=False, moving_avg=25, w_lin=1.0, factor=1, output_attention=False,
-                 activation='gelu', distil=True):
+                 activation='gelu', conv=True):
         super(DsFormer, self).__init__()
 
         self.use_RevIN = use_RevIN
@@ -38,11 +38,6 @@ class DsFormer(nn.Module):
                     activation=activation
                 ) for l in range(enc_layers)
             ],
-            [
-                ConvLayer(
-                    hidden_size
-                ) for l in range(enc_layers - 1)
-            ] if distil else None,
             norm_layer=torch.nn.LayerNorm(hidden_size)
         )
 

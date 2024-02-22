@@ -32,13 +32,13 @@ class Config:
 
     # model define
     hidden_size = 128  # 隐层大小
-    enc_layers = 2
+    enc_layers = 1
     dec_layers = 1
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
     use_RevIN = True
-    conv = False
+    conv = True
     factor = 1
     activation = 'gelu'
     moving_avg = 25
