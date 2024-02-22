@@ -448,6 +448,9 @@ class SeqFormer(nn.Module):
 
         self.decompsition = series_decomp(moving_avg)
         self.Linear_Trend = nn.Linear(timestep, pred_len)
+        # self.Linear_Trend.weight = nn.Parameter(
+        #     (1 / pred_len) * torch.ones([pred_len, timestep]),
+        #     requires_grad=True)
         self.Linear_Trend.weight = nn.Parameter(
             (1 / timestep) * torch.ones([pred_len, timestep]))
 
