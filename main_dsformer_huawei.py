@@ -34,14 +34,14 @@ class Config:
     enc_layers = 1
     dec_layers = 1
     ffn_hidden_size = 1024  # FFN隐层大小
-    num_heads = 2
+    num_heads = 4
     dropout = 0.1
     pre_norm = False
     use_RevIN = True
     conv = True
 
     # optimization
-    epochs = 50  # 迭代轮数
+    epochs = 100  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
