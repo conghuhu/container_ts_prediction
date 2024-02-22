@@ -11,7 +11,7 @@ from models.seqformer.seqformer import series_decomp
 
 class DsFormer(nn.Module):
     def __init__(self, timestep, feature_size, hidden_size, enc_layers, num_heads, ffn_hidden_size, dropout, pred_len,
-                 use_RevIN=False, moving_avg=25, w_lin=1.0, factor=3, output_attention=False,
+                 use_RevIN=False, moving_avg=25, w_lin=1.0, factor=1, output_attention=False,
                  activation='gelu', distil=True):
         super(DsFormer, self).__init__()
 
@@ -81,7 +81,7 @@ class DsFormer(nn.Module):
         enc_out = self.enc_embedding(x, x_mark=None)
 
         # timeStep, batch_size, hidden_size
-        enc_out = self.encoder(enc_out)
+        enc_out, attns = self.encoder(enc_out)
 
         dec_out = self.projection(enc_out)[:, :, :feature_size]
 
