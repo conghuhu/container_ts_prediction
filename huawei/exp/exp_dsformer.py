@@ -8,9 +8,9 @@ class Exp_DsFormer(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = DsFormer(args.timestep, args.feature_size, args.hidden_size, args.enc_layers, args.dec_layers,
+        model = DsFormer(args.timestep, args.feature_size, args.hidden_size, args.enc_layers,
                          args.num_heads,
-                         args.ffn_hidden_size, args.dropout, args.pre_norm, args.output_size, args.pre_len,
+                         args.ffn_hidden_size, args.dropout, args.pre_len,
                          args.use_RevIN, distil=args.conv)
         print(model)
         return model
