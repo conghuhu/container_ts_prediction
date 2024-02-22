@@ -10,6 +10,6 @@ class Exp_DsFormer(Exp_Basic):
         args = self.args
         model = DsFormer(args.timestep, args.feature_size, args.hidden_size, args.enc_layers,
                          args.num_heads, args.ffn_hidden_size, args.dropout, args.pre_len,
-                         args.use_RevIN, distil=args.conv, factor=args.factor, moving_avg=args.moving_avg)
+                         args.use_RevIN, conv=args.conv, factor=args.factor, moving_avg=args.moving_avg)
         print(model)
         return model
