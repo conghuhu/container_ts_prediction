@@ -32,7 +32,7 @@ class Config:
 
     # model define
     hidden_size = 64  # 隐层大小
-    enc_layers = 1  # encoder层数
+    enc_layers = 2  # encoder层数
     dec_layers = 1
     num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
     dropout = 0.1
