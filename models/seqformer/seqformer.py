@@ -440,7 +440,7 @@ class Decoder(nn.Module):
 class SeqFormer(nn.Module):
     def __init__(self, timestep, feature_size, hidden_size, enc_layers, dec_layers, num_heads, ffn_hidden_size, dropout,
                  pre_norm,
-                 output_size, pred_len, use_RevIN=False, moving_avg=25):
+                 output_size, pred_len, use_RevIN=False, moving_avg=25, w_lin=1.0):
         super(SeqFormer, self).__init__()
 
         self.use_RevIN = use_RevIN
@@ -497,7 +497,7 @@ class SeqFormer(nn.Module):
 
     def forward(self, x, queue_ids):
         # x.shape(batch_size, timeStep, feature_size)
-        batch_size = x.shape[0]
+        batch_size, timeStep, feature_size = x.shape
 
         if self.use_RevIN:
             x = self.revin(x, 'norm')
@@ -540,7 +540,7 @@ class SeqFormer(nn.Module):
         output = output.transpose(1, 0)
 
         # 将季节性与趋势性相加
-        output = output + trend_output  # output: [B, P, D]
+        output = output + self.w_dec * trend_output  # output: [B, P, D]
 
         if self.use_RevIN:
             output = self.revin(output, 'denorm')
