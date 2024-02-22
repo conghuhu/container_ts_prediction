@@ -1,10 +1,11 @@
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 from layers.Embed import DataEmbedding
 from layers.SelfAttention_Family import AttentionLayer, ProbAttention
-from layers.Transformer_EncDec import Encoder, EncoderLayer
+from layers.Transformer_EncDec import Encoder
 from models.RevIN.RevIN import RevIN
 from models.seqformer.seqformer import series_decomp
 
@@ -50,6 +51,136 @@ class MLP(nn.Module):
         return y
 
 
+class ConvolutionModule(nn.Module):
+    def __init__(self,
+                 channels: int,
+                 kernel_size: int = 3,
+                 activation: nn.Module = nn.ReLU(),
+                 norm: str = "layer_norm",
+                 bias: bool = True,
+                 stride: int = 1,
+                 dropout: float = 0.1) -> None:
+        super().__init__()
+        self.bias = bias
+        self.channels = channels
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.norm = nn.LayerNorm(channels) if norm == "layer_norm" else nn.BatchNorm1d(channels)
+        self.stride = stride
+
+        self.pointwise_conv1 = nn.Conv1d(
+            channels,
+            2 * channels,
+            kernel_size=1,
+            stride=1,
+            padding=0,
+            bias=bias
+        )
+
+        assert (kernel_size - 1) % 2 == 0
+        padding = (kernel_size - 1) // 2
+
+        self.depthwise_conv = nn.Conv1d(
+            channels,
+            channels,
+            kernel_size,
+            stride=1,
+            padding=padding,
+            groups=channels,
+            bias=bias
+        )
+
+        self.pointwise_conv2 = nn.Conv1d(
+            channels,
+            channels,
+            kernel_size=1,
+            stride=1,
+            padding=0,
+            bias=bias
+        )
+
+        self.dropout = nn.Dropout(dropout)
+
+        self._init_weights()
+
+    def _init_weights(self):
+        pw_max = self.channels ** -0.5
+        dw_max = self.kernel_size ** -0.5
+        torch.nn.init.uniform_(self.pointwise_conv1.weight.data, -pw_max, pw_max)
+        torch.nn.init.uniform_(self.depthwise_conv.weight.data, -dw_max, dw_max)
+        torch.nn.init.uniform_(self.pointwise_conv2.weight.data, -pw_max, pw_max)
+        if self.bias:
+            torch.nn.init.uniform_(self.pointwise_conv1.bias.data, -pw_max, pw_max)
+            torch.nn.init.uniform_(self.depthwise_conv.bias.data, -dw_max, dw_max)
+            torch.nn.init.uniform_(self.pointwise_conv2.bias.data, -pw_max, pw_max)
+
+    def forward(self, x: torch.Tensor):
+        shortcut = x
+
+        # B,L,D -> B,D,L  D is channel
+        x = x.transpose(1, 2)
+
+        x = self.pointwise_conv1(x)
+        x = nn.functional.glu(x, dim=1)
+
+        x = self.depthwise_conv(x)
+
+        # layer norm
+        x = x.transpose(1, 2)
+        x = self.activation(self.norm(x))
+        x = x.transpose(1, 2)
+
+        x = self.pointwise_conv2(x)
+        x = self.dropout(x)
+
+        # B,L,D
+        return shortcut + x.transpose(1, 2)
+
+
+class ConvEncoderLayer(nn.Module):
+    def __init__(self, attention, d_model, d_ff=None, dropout=0.1, activation="relu", use_conv=False):
+        super(ConvEncoderLayer, self).__init__()
+        d_ff = d_ff or 4 * d_model
+        self.attention = attention
+        self.conv1 = nn.Conv1d(in_channels=d_model, out_channels=d_ff, kernel_size=1)
+        self.conv2 = nn.Conv1d(in_channels=d_ff, out_channels=d_model, kernel_size=1)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.norm3 = nn.LayerNorm(d_model)
+        self.dropout = nn.Dropout(dropout)
+        self.activation = F.relu if activation == "relu" else F.gelu
+
+        self.conv = ConvolutionModule(
+            channels=d_model,
+            kernel_size=3,
+            stride=1
+        ) if use_conv else None
+
+    def forward(self, x, attn_mask=None, tau=None, delta=None):
+        # 自注意力模块
+        new_x, attn = self.attention(
+            x, x, x,
+            attn_mask=attn_mask,
+            tau=tau, delta=delta
+        )
+        att_output = x + self.dropout(new_x)
+        att_output = self.norm1(att_output)
+
+        # 卷积模块
+        if self.conv is not None:
+            conv_x = self.conv(x)
+            conv_output = conv_x + x
+            conv_output = self.norm2(conv_output)
+
+        y = output = (att_output + conv_output) if self.conv is not None else att_output
+
+        # FFN
+        y = self.dropout(self.activation(self.conv1(y.transpose(-1, 1))))
+        y = self.dropout(self.conv2(y).transpose(-1, 1))
+
+        return self.norm3(output + y), attn
+
+
 class DsFormer(nn.Module):
     def __init__(self, timestep, feature_size, hidden_size, enc_layers, num_heads, ffn_hidden_size, dropout, pred_len,
                  use_RevIN=False, moving_avg=25, w_lin=1.0, factor=1, output_attention=False,
@@ -70,14 +201,15 @@ class DsFormer(nn.Module):
 
         self.encoder = Encoder(
             [
-                EncoderLayer(
+                ConvEncoderLayer(
                     AttentionLayer(
                         ProbAttention(False, factor, attention_dropout=dropout,
                                       output_attention=output_attention), hidden_size, num_heads),
                     hidden_size,
                     ffn_hidden_size,
                     dropout=dropout,
-                    activation=activation
+                    activation=activation,
+                    use_conv=conv
                 ) for l in range(enc_layers)
             ],
             norm_layer=torch.nn.LayerNorm(hidden_size)
