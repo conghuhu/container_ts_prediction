@@ -48,7 +48,7 @@ class Client(nn.Module):
         linear_out = self.Linear(x_enc.permute(0, 2, 1)).permute(0, 2, 1)
         dec_out = dec_out[:, -self.pred_len:, :] + self.w_dec * linear_out
         if self.use_RevIN:
-            dec_out = self.revin_layer(dec_out[:, -self.pred_len:, :] + self.w_dec * linear_out, 'denorm')
+            dec_out = self.revin_layer(dec_out, 'denorm')
 
         if self.output_attention:
             return dec_out[:, -self.pred_len:, :], attns
