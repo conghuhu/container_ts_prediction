@@ -3,7 +3,7 @@ import torch
 from torch import nn
 
 from layers.Embed import DataEmbedding
-from layers.SelfAttention_Family import AttentionLayer, FullAttention
+from layers.SelfAttention_Family import AttentionLayer, ProbAttention
 from layers.Transformer_EncDec import Encoder, EncoderLayer, ConvLayer
 from models.RevIN.RevIN import RevIN
 from models.seqformer.seqformer import series_decomp
@@ -31,7 +31,7 @@ class DsFormer(nn.Module):
             [
                 EncoderLayer(
                     AttentionLayer(
-                        FullAttention(False, factor, attention_dropout=dropout,
+                        ProbAttention(False, factor, attention_dropout=dropout,
                                       output_attention=output_attention), hidden_size, num_heads),
                     hidden_size,
                     ffn_hidden_size,
@@ -47,20 +47,6 @@ class DsFormer(nn.Module):
             norm_layer=torch.nn.LayerNorm(hidden_size)
         )
 
-        # self.output = nn.Embedding(pred_len, hidden_size)
-        # self.output_pos = nn.Embedding(pred_len, hidden_size)
-        #
-        # self.decoder = Decoder(
-        #     num_layers=dec_layers,
-        #     d_model=hidden_size,
-        #     nhead=num_heads,
-        #     dim_feedforward=ffn_hidden_size,
-        #     dropout=dropout,
-        #     pre_norm=pre_norm
-        # )
-
-        self.fc_output = nn.Linear(hidden_size, output_size)
-
         self.w_dec = torch.nn.Parameter(torch.FloatTensor([w_lin] * feature_size), requires_grad=True)
 
         # 投影层，可替代解码器
@@ -69,7 +55,7 @@ class DsFormer(nn.Module):
         if use_RevIN:
             self.revin = RevIN(feature_size)
 
-        print("Number Parameters: seqformer", self.get_n_params())
+        print("Number Parameters: dsformer", self.get_n_params())
 
     def get_n_params(self):
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())
