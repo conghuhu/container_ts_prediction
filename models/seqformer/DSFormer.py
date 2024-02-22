@@ -163,14 +163,12 @@ class ConvEncoderLayer(nn.Module):
             attn_mask=attn_mask,
             tau=tau, delta=delta
         )
-        att_output = x + self.dropout(new_x)
-        att_output = self.norm1(att_output)
+        att_output = self.norm1(x + self.dropout(new_x))
 
         # 卷积模块
         if self.conv is not None:
             conv_x = self.conv(x)
-            conv_output = conv_x + x
-            conv_output = self.norm2(conv_output)
+            conv_output = self.norm2(conv_x + x)
 
         y = output = (att_output + conv_output) if self.conv is not None else att_output
 
