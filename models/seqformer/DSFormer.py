@@ -10,9 +10,9 @@ from models.seqformer.seqformer import series_decomp
 
 
 class MLP(nn.Module):
-    '''
+    """
     Multilayer perceptron to encode/decode high dimension representation of sequential data
-    '''
+    """
 
     def __init__(self,
                  f_in,
@@ -53,11 +53,12 @@ class MLP(nn.Module):
 class DsFormer(nn.Module):
     def __init__(self, timestep, feature_size, hidden_size, enc_layers, num_heads, ffn_hidden_size, dropout, pred_len,
                  use_RevIN=False, moving_avg=25, w_lin=1.0, factor=1, output_attention=False,
-                 activation='gelu', conv=True):
+                 activation='gelu', conv=True, dec_type='mlp'):
         super(DsFormer, self).__init__()
 
         self.use_RevIN = use_RevIN
         self.pre_len = pred_len
+        self.dec_type = dec_type
 
         self.decompsition = series_decomp(moving_avg)
         self.Linear_Trend = nn.Linear(timestep, pred_len)
@@ -84,9 +85,14 @@ class DsFormer(nn.Module):
 
         self.w_dec = torch.nn.Parameter(torch.FloatTensor([w_lin] * feature_size), requires_grad=True)
 
+        assert dec_type in ['mlp', 'linear']
         # 投影层，可替代解码器
-        self.projection = nn.Linear(hidden_size, pred_len, bias=True)
-        self.mlp = MLP(hidden_size, pred_len, hidden_size * 2, 2, dropout, activation='relu')
+        if dec_type == 'mlp':
+            self.mlp = MLP(hidden_size, pred_len, hidden_size, 2, dropout, activation='relu')
+        elif dec_type == 'linear':
+            self.projection = nn.Linear(hidden_size, pred_len, bias=True)
+        else:
+            raise Exception('不支持其他类型的解码器')
 
         if use_RevIN:
             self.revin = RevIN(feature_size)
@@ -115,13 +121,17 @@ class DsFormer(nn.Module):
         x = seasonal_init
 
         # Embedding
-        enc_out = self.enc_embedding(x, x_mark=None)
+        enc_out = self.enc_embedding(x, x_mark=None)  # enc_out: [B, T, hidden_size]
 
         # timeStep, batch_size, hidden_size
-        enc_out, attns = self.encoder(enc_out)
+        enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
 
-        # dec_out = self.projection(enc_out)[:, :, :feature_size]
-        dec_out = self.mlp(enc_out)[:, :, :feature_size]
+        if self.dec_type == 'mlp':
+            dec_out = self.mlp(enc_out)[:, :, :feature_size]  # enc_out: [B, P, D]
+        elif self.dec_type == 'linear':
+            dec_out = self.projection(enc_out)[:, :, :feature_size]
+        else:
+            raise Exception('不支持其他类型的解码器')
 
         # 将季节性与趋势性相加
         output = dec_out + self.w_dec * trend_output  # output: [B, P, D]

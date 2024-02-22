@@ -2,7 +2,6 @@ import argparse
 
 from huawei.exp.exp_dsformer import Exp_DsFormer
 
-
 parser = argparse.ArgumentParser(description='SeqFormer time series Forecasting')
 parser.add_argument('--mode', type=str, default='all',
                     help='mode of run, options: [all, train, test, pred]')
@@ -33,7 +32,6 @@ class Config:
     # model define
     hidden_size = 128  # 隐层大小
     enc_layers = 2
-    dec_layers = 1
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
@@ -42,9 +40,10 @@ class Config:
     factor = 1
     activation = 'gelu'
     moving_avg = 25
+    dec_type = 'mlp'  # 解码器类型 ['mlp', 'linear']
 
     # optimization
-    epochs = 100  # 迭代轮数
+    epochs = 2  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
@@ -64,7 +63,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_conv{}_factor{}_activation{}_mavg{}_revin{}_loss{}'.format(
+setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dec{}_nh{}_dp{}_ffn{}_conv{}_factor{}_activation{}_mavg{}_revin{}_loss{}'.format(
     config.model_name,
     config.timestep,
     config.feature_size,
@@ -75,7 +74,7 @@ setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_d
     config.batch_size,
     config.hidden_size,
     config.enc_layers,
-    config.dec_layers,
+    config.dec_type,
     config.num_heads,
     config.dropout,
     config.ffn_hidden_size,
