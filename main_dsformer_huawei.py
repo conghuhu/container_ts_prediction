@@ -1,6 +1,7 @@
 import argparse
 
-from huawei.exp.exp_seqformer import Exp_SeqFormer
+from huawei.exp.exp_dsformer import Exp_DsFormer
+
 
 parser = argparse.ArgumentParser(description='SeqFormer time series Forecasting')
 parser.add_argument('--mode', type=str, default='all',
@@ -30,8 +31,8 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 64  # 隐层大小
-    enc_layers = 1
+    hidden_size = 128  # 隐层大小
+    enc_layers = 2
     dec_layers = 1
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
@@ -86,7 +87,7 @@ setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_d
     config.loss_name)
 
 config.setting = setting
-exp = Exp_SeqFormer(config)
+exp = Exp_DsFormer(config)
 
 if args.mode == 'all' or args.mode == 'train':
     print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
