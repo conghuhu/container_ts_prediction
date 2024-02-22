@@ -38,6 +38,7 @@ class Config:
     dropout = 0.1
     pre_norm = False
     use_RevIN = True
+    conv = True
 
     # optimization
     epochs = 50  # 迭代轮数
@@ -60,7 +61,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_per_norm{}_revin{}_loss{}'.format(
+setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_per_norm{}_conv{}_revin{}_loss{}'.format(
     config.model_name,
     config.timestep,
     config.feature_size,
@@ -76,6 +77,7 @@ setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_d
     config.dropout,
     config.ffn_hidden_size,
     config.pre_norm,
+    config.conv,
     config.use_RevIN,
     config.loss_name)
 
