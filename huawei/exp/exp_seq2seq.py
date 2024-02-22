@@ -8,6 +8,6 @@ class Exp_Seq2Seq(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = EncoderDecoderWrapper(args.feature_size, args.output_size, args.hidden_size, args.enc_layers,
+        model = EncoderDecoderWrapper(args.feature_size, args.output_size, args.hidden_size, args.num_layers,
                                       args.pre_len, args.timestep, args.bidirectional)
         return model

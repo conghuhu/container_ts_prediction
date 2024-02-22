@@ -31,12 +31,12 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 256  # 隐层大小
+    hidden_size = 64  # 隐层大小
     enc_layers = 1  # encoder层数
     dec_layers = 1
     num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
     dropout = 0.1
-    use_RevIN = True
+    use_RevIN = False
     activation = 'gelu'
     d_ff = 2048
     factor = 3  # attn factor

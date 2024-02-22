@@ -585,13 +585,26 @@ mse: 0.046584922820329666, mae: 0.10677358508110046, rmse: 0.21583540737628937, 
 huawei_dsformer_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el1_dl1_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE  
 mse: 0.07936958223581314, mae: 0.13560117781162262, rmse: 0.28172606229782104, mape: 1.348176121711731, mspe: 777.7683715820312
 
-# 最好的效果
+# 去掉卷积的消融实验
 huawei_dsformer_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el2_dl1_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE  
 mse: 0.03720758855342865, mae: 0.09376966953277588, rmse: 0.19289268553256989, mape: 0.997126042842865, mspe: 416.2035217285156
 
 huawei_dsformer_ts144_fs18_os18_pl144_epoch2_lr0.001_bs256_hs128_el2_dl1_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE  
 mse: 0.04072128236293793, mae: 0.09732534736394882, rmse: 0.20179514586925507, mape: 0.957094669342041, mspe: 397.54022216796875
 
+# 最好的效果
 huawei_dsformer_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE  
 mse: 0.03634634613990784, mae: 0.09196006506681442, rmse: 0.1906471699476242, mape: 0.9225238561630249, mspe: 338.4967956542969
+
+huawei_DLinear_ftMS_ts144_fs18_pl144_epoch100_lr0.001_bs256_enc18_mavg25_individualTrue_lossMSE_revinFalse  
+mse: 0.11377273499965668, mae: 0.17222477495670319, rmse: 0.33730214834213257, mape: 1.8093091249465942, mspe: 1409.1068115234375
+
+huawei_DLinear_ftMS_ts144_fs18_pl144_epoch100_lr0.001_bs256_enc18_mavg25_individualFalse_lossMSE_revinFalse  
+mse: 0.11344446986913681, mae: 0.1690417379140854, rmse: 0.3368151783943176, mape: 1.8785592317581177, mspe: 1600.0565185546875
+
+group_id_transformer_ftMS_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs64_el1_dl1_nh2_dp0.1_ffn8_lossMSE_revinFalse  
+mse: 0.18349850177764893, mae: 0.19159197807312012, rmse: 0.4283672571182251, mape: 1.5050841569900513, mspe: 1130.6444091796875
+
+huawei_cnn_lstm_att_ftMS_ts144_fs18_os144_pl144_epoch100_lr0.001_bs256_rl2_hs64_oc64_biFalse  
+mse: 0.16510991752147675, mae: 0.18637701869010925, rmse: 0.4063372015953064, mape: 1.238491177558899, mspe: 563.1294555664062
 

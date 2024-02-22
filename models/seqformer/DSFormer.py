@@ -133,6 +133,7 @@ class ConvolutionModule(nn.Module):
         x = self.pointwise_conv2(x)
         x = self.dropout(x)
 
+        # 残差连接
         # B,L,D
         return shortcut + x.transpose(1, 2)
 

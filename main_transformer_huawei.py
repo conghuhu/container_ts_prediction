@@ -31,13 +31,13 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 32  # 隐层大小
-    num_layers = 1  # encoder层数
+    hidden_size = 64  # 隐层大小
+    enc_layers = 1  # encoder层数
     dec_layers = 1
     num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
     dropout = 0.1
     forward_expansion = 8
-    use_RevIN = True
+    use_RevIN = False
 
     # optimization
     epochs = 100  # 迭代轮数
@@ -60,7 +60,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_rl{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}'.format(
+setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}'.format(
     config.model_name,
     config.features,
     config.timestep,
@@ -71,7 +71,7 @@ setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_rl{}_dl{}
     config.learning_rate,
     config.batch_size,
     config.hidden_size,
-    config.num_layers,
+    config.enc_layers,
     config.dec_layers,
     config.num_heads,
     config.dropout,
