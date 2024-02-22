@@ -4,9 +4,50 @@ from torch import nn
 
 from layers.Embed import DataEmbedding
 from layers.SelfAttention_Family import AttentionLayer, ProbAttention
-from layers.Transformer_EncDec import Encoder, EncoderLayer, ConvLayer
+from layers.Transformer_EncDec import Encoder, EncoderLayer
 from models.RevIN.RevIN import RevIN
 from models.seqformer.seqformer import series_decomp
+
+
+class MLP(nn.Module):
+    '''
+    Multilayer perceptron to encode/decode high dimension representation of sequential data
+    '''
+
+    def __init__(self,
+                 f_in,
+                 f_out,
+                 hidden_dim=128,
+                 hidden_layers=2,
+                 dropout=0.05,
+                 activation='tanh'):
+        super(MLP, self).__init__()
+        self.f_in = f_in
+        self.f_out = f_out
+        self.hidden_dim = hidden_dim
+        self.hidden_layers = hidden_layers
+        self.dropout = dropout
+        if activation == 'relu':
+            self.activation = nn.ReLU()
+        elif activation == 'tanh':
+            self.activation = nn.Tanh()
+        else:
+            raise NotImplementedError
+
+        layers = [nn.Linear(self.f_in, self.hidden_dim),
+                  self.activation, nn.Dropout(self.dropout)]
+        for i in range(self.hidden_layers - 2):
+            layers += [nn.Linear(self.hidden_dim, self.hidden_dim),
+                       self.activation, nn.Dropout(dropout)]
+
+        layers += [nn.Linear(hidden_dim, f_out)]
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x):
+        # x:     B x S x f_in
+        # y:     B x S x f_out
+        y = self.layers(x)
+        return y
 
 
 class DsFormer(nn.Module):
@@ -45,6 +86,7 @@ class DsFormer(nn.Module):
 
         # 投影层，可替代解码器
         self.projection = nn.Linear(hidden_size, pred_len, bias=True)
+        self.mlp = MLP(hidden_size, pred_len, hidden_size * 2, 2, dropout, activation='relu')
 
         if use_RevIN:
             self.revin = RevIN(feature_size)
@@ -78,7 +120,8 @@ class DsFormer(nn.Module):
         # timeStep, batch_size, hidden_size
         enc_out, attns = self.encoder(enc_out)
 
-        dec_out = self.projection(enc_out)[:, :, :feature_size]
+        # dec_out = self.projection(enc_out)[:, :, :feature_size]
+        dec_out = self.mlp(enc_out)[:, :, :feature_size]
 
         # 将季节性与趋势性相加
         output = dec_out + self.w_dec * trend_output  # output: [B, P, D]
