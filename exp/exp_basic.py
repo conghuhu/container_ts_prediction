@@ -32,6 +32,11 @@ class Exp_Basic(object):
             "font.weight": "normal"
         }
         rcParams.update(config)
+        self.chinese_font = {
+            'family': 'SimSun',
+            'size': 20,
+            'weight': 'normal',
+        }
         print("模型已初始化, 耗时{}s".format(time.time() - start))
 
     def _acquire_device(self):
@@ -371,14 +376,14 @@ class Exp_Basic(object):
                 # true_show_data.shape [timestep+pre_len]
 
                 # 绘图
-                plt.subplot(3, 1, idx)
+                ax = plt.subplot(3, 1, idx)
                 if args.features == 'MS' or args.features == 'S':
                     # print("true_show_data: \n", true_show_data)
                     # print("pred data: \n", pred)
                     plt.plot(range(len(true_show_data)), true_show_data,
-                             label='True Values')
+                             label='真实值')
                     plt.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
-                             label='Predicted Values')
+                             label='预测值')
                 else:
                     print('未实现多元预测多元的可视化')
                     return
@@ -386,12 +391,12 @@ class Exp_Basic(object):
                 # 添加标题和轴标签
                 if idx == 1:
                     # 添加图例
-                    plt.legend(loc='upper right')
+                    plt.legend(loc='upper left')
                 # plt.xlabel('Time Point')
-                plt.ylabel(args.target)
+                ax.set_ylabel('CPU使用率', self.chinese_font)
                 # 在特定索引位置画一条直线
                 plt.axvline(len(true_show_data) - args.pre_len, color='blue', linestyle='--', linewidth=2)
-                plt.title('API_ID: {}'.format(queueId))
+                ax.set_title('API_ID: {}'.format(queueId), self.chinese_font)
                 idx += 1
 
             # plt.suptitle('Past vs Predicted Future Values')
