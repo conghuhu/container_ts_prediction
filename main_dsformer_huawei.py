@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    model_name = 'seqformer'  # 模型名称
+    model_name = 'dsformer'  # 模型名称
     save_path = '../checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader

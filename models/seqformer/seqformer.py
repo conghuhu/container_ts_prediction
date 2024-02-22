@@ -485,6 +485,8 @@ class SeqFormer(nn.Module):
 
         self.fc_output = nn.Linear(hidden_size, output_size)
 
+        self.w_dec = torch.nn.Parameter(torch.FloatTensor([w_lin] * feature_size), requires_grad=True)
+
         if use_RevIN:
             self.revin = RevIN(feature_size)
 
