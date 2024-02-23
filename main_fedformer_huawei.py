@@ -31,7 +31,7 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 256  # 隐层大小
+    hidden_size = 64  # 隐层大小
     enc_layers = 1
     dec_layers = 1
     num_heads = 2

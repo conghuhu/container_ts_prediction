@@ -17,7 +17,7 @@ class FEDFormer(nn.Module):
     Paper link: https://proceedings.mlr.press/v162/zhou22g.html
     """
 
-    def __init__(self, configs, version='Fourier', mode_select='random', modes=32, embed='timeF', freq='t'):
+    def __init__(self, configs, version='Wavelets', mode_select='random', modes=32, embed='timeF', freq='t'):
         """
         version: str, for FEDformer, there are two versions to choose, options: [Fourier, Wavelets].
         mode_select: str, for FEDformer, there are two mode selection method, options: [random, low].

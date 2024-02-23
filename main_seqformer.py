@@ -20,7 +20,7 @@ class Config:
     features = 'MS'  # 三个选项M，MS，S。分别是多元预测多元，多元预测单元，单元预测单元
     target = 'CPU_USAGE'  # 预测目标
     checkpoints = args.checkpoints
-    scale_type = 'minmax'  # 标准化类型 "standard" "minmax"
+    scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
     timestep = 96  # 时间步长，就是利用多少时间窗口
