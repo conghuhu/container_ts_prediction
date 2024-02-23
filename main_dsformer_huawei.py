@@ -40,7 +40,7 @@ class Config:
     factor = 1
     activation = 'gelu'
     moving_avg = 25
-    dec_type = 'mlp'  # 解码器类型 ['mlp', 'linear']
+    dec_type = 'linear'  # 解码器类型 ['mlp', 'linear']
 
     # optimization
     epochs = 100  # 迭代轮数
