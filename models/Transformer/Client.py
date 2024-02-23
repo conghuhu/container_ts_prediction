@@ -41,10 +41,10 @@ class Client(nn.Module):
             x_enc = self.revin_layer(x_enc, 'norm')
 
         # 送入编码器
-        enc_out = x_enc.permute(0, 2, 1)
-        enc_out, attns = self.encoder(enc_out, attn_mask=None)
-        dec_out = self.proj(enc_out)
-        dec_out = dec_out.permute(0, 2, 1)
+        enc_out = x_enc.permute(0, 2, 1) # [B, F, T]
+        enc_out, attns = self.encoder(enc_out, attn_mask=None) # enc_out: [B, F, D]
+        dec_out = self.proj(enc_out) # dec_out: [B, F, P]
+        dec_out = dec_out.permute(0, 2, 1) # dec_out: [B, P, F]
         # 趋势分解
         linear_out = self.Linear(x_enc.permute(0, 2, 1)).permute(0, 2, 1)
         dec_out = dec_out[:, -self.pred_len:, :] + self.w_dec * linear_out

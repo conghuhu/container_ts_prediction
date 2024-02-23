@@ -189,6 +189,7 @@ class DsFormer(nn.Module):
         self.use_RevIN = use_RevIN
         self.pre_len = pred_len
         self.dec_type = dec_type
+        self.hidden_size = hidden_size
 
         self.decompsition = series_decomp(moving_avg)
         self.Linear_Trend = nn.Linear(timestep, pred_len)
@@ -221,7 +222,7 @@ class DsFormer(nn.Module):
         if dec_type == 'mlp':
             self.mlp = MLP(hidden_size, pred_len, hidden_size, 2, dropout, activation='relu')
         elif dec_type == 'linear':
-            self.projection = nn.Linear(hidden_size, pred_len, bias=True)
+            self.projection = nn.Linear(hidden_size, pred_len*feature_size, bias=True)
         else:
             raise Exception('不支持其他类型的解码器')
 
@@ -258,14 +259,15 @@ class DsFormer(nn.Module):
         enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
 
         if self.dec_type == 'mlp':
-            dec_out = self.mlp(enc_out)[:, :, :feature_size]  # enc_out: [B, P, D]
+            # dec_out = self.mlp(enc_out)[:, -self.pre_len:, :feature_size]  # enc_out: [B, P, D]
+            dec_out = self.mlp(enc_out)  # enc_out: [B, P, D]
         elif self.dec_type == 'linear':
-            dec_out = self.projection(enc_out)[:, :, :feature_size]
+            dec_out = self.projection(enc_out)[:, -self.pre_len:, :feature_size]
         else:
             raise Exception('不支持其他类型的解码器')
 
         # 将季节性与趋势性相加
-        output = dec_out + self.w_dec * trend_output  # output: [B, P, D]
+        output = dec_out + self.w_dec * trend_output  # output: [B, P, F]
 
         if self.use_RevIN:
             output = self.revin(output, 'denorm')
