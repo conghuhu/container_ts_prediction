@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,7 +17,7 @@ class FEDFormer(nn.Module):
     Paper link: https://proceedings.mlr.press/v162/zhou22g.html
     """
 
-    def __init__(self, configs, version='Wavelets', mode_select='random', modes=32, embed='timeF', freq='t'):
+    def __init__(self, configs, version='Fourier', mode_select='random', modes=32, embed='timeF', freq='t'):
         """
         version: str, for FEDformer, there are two versions to choose, options: [Fourier, Wavelets].
         mode_select: str, for FEDformer, there are two mode selection method, options: [random, low].
@@ -24,7 +25,7 @@ class FEDFormer(nn.Module):
         """
         super(FEDFormer, self).__init__()
         self.seq_len = configs.timestep
-        self.label_len = 72
+        self.label_len = configs.label_len
         self.pred_len = configs.pre_len
 
         self.version = version
@@ -106,12 +107,18 @@ class FEDFormer(nn.Module):
             projection=nn.Linear(configs.hidden_size, configs.output_size, bias=True)
         )
 
+        print("Number Parameters: FEDformer", self.get_n_params())
+
+    def get_n_params(self):
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        number_params = sum([np.prod(p.size()) for p in model_parameters])
+        return number_params
+
     def forecast(self, x_enc):
         # [B, T, F]
         # decomp init
         mean = torch.mean(x_enc, dim=1).unsqueeze(1).repeat(1, self.pred_len, 1)  # mean [B, T, F]
         seasonal_init, trend_init = self.decomp(x_enc)  # x - moving_avg, moving_avg [B, T, F] [B, T, F]
-        print(trend_init[:, -self.label_len:, :].shape)
         # decoder input
         trend_init = torch.cat([trend_init[:, -self.label_len:, :], mean], dim=1)
         seasonal_init = F.pad(seasonal_init[:, -self.label_len:, :], (0, 0, 0, self.pred_len))

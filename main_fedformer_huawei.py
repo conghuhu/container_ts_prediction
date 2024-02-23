@@ -26,23 +26,22 @@ class Config:
     timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 18  # 只预测CPU
     feature_size = 18  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
+    label_len = 72
     pre_len = 144  # 预测长度
     inverse = False
 
     # model define
-    hidden_size = 128  # 隐层大小
+    hidden_size = 256  # 隐层大小
     enc_layers = 1
     dec_layers = 1
     num_heads = 2
     dropout = 0.1
-    factor = 1
     activation = 'gelu'
     moving_avg = 25
-    dec_type = 'linear'  # 解码器类型 ['mlp', 'linear']
-    d_ff = 2048
+    d_ff = 1024
 
     # optimization
-    epochs = 2  # 迭代轮数
+    epochs = 50  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
@@ -62,11 +61,12 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_dec{}_nh{}_dp{}_ffn{}_factor{}_activation{}_mavg{}_loss{}'.format(
+setting = 'huawei_{}_ts{}_fs{}_os{}_ll{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_activation{}_mavg{}_loss{}'.format(
     config.model_name,
     config.timestep,
     config.feature_size,
     config.output_size,
+    config.label_len,
     config.pre_len,
     config.epochs,
     config.learning_rate,
@@ -74,11 +74,9 @@ setting = 'huawei_{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_dec{}_
     config.hidden_size,
     config.enc_layers,
     config.dec_layers,
-    config.dec_type,
     config.num_heads,
     config.dropout,
     config.d_ff,
-    config.factor,
     config.activation,
     config.moving_avg,
     config.loss_name)
