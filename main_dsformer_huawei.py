@@ -30,7 +30,7 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 128  # 隐层大小
+    hidden_size = 160  # 隐层大小
     enc_layers = 2
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
@@ -40,7 +40,7 @@ class Config:
     factor = 1
     activation = 'gelu'
     moving_avg = 25
-    dec_type = 'linear'  # 解码器类型 ['mlp', 'linear']
+    dec_type = 'mlp'  # 解码器类型 ['mlp', 'linear']
 
     # optimization
     epochs = 100  # 迭代轮数

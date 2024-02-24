@@ -32,6 +32,8 @@ class MLP(nn.Module):
             self.activation = nn.ReLU()
         elif activation == 'tanh':
             self.activation = nn.Tanh()
+        elif activation == 'gelu':
+            self.activation = nn.GELU()
         else:
             raise NotImplementedError
 
@@ -220,11 +222,12 @@ class DsFormer(nn.Module):
         assert dec_type in ['mlp', 'linear']
         # 投影层，可替代解码器
         if dec_type == 'mlp':
-            self.mlp = MLP(hidden_size, pred_len, hidden_size, 2, dropout, activation='relu')
+            self.mlp = MLP(timestep, pred_len, hidden_size, 2, dropout, activation=activation)
         elif dec_type == 'linear':
-            self.projection = nn.Linear(hidden_size, pred_len, bias=True)
+            self.projection = nn.Linear(timestep, pred_len, bias=True)
         else:
             raise Exception('不支持其他类型的解码器')
+        self.fc = nn.Linear(hidden_size, feature_size)
 
         if use_RevIN:
             self.revin = RevIN(feature_size)
@@ -259,12 +262,14 @@ class DsFormer(nn.Module):
         enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
 
         if self.dec_type == 'mlp':
-            dec_out = self.mlp(enc_out)[:, -self.pre_len:, :feature_size]  # enc_out: [B, P, D]
-            # dec_out = self.mlp(enc_out)  # enc_out: [B, P, D]
+            enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
+            dec_out = self.mlp(enc_out).permute(0, 2, 1)  # enc_out: [B, P, D]
         elif self.dec_type == 'linear':
-            dec_out = self.projection(enc_out)[:, -self.pre_len:, :feature_size]
+            enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
+            dec_out = self.projection(enc_out).permute(0, 2, 1) # enc_out: [B, D, P] -> [B, P, D]
         else:
             raise Exception('不支持其他类型的解码器')
+        dec_out = self.fc(dec_out) # enc_out: [B, P, F]
 
         # 将季节性与趋势性相加
         output = dec_out + self.w_dec * trend_output  # output: [B, P, F]
