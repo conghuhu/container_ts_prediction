@@ -93,10 +93,10 @@ class DLinear(nn.Module):
 
     def encoder(self, x):
         # 季节与时间趋势性分解
-        seasonal_init, trend_init = self.decompsition(x)  # seasonal_init: [B, T, D]  trend_init: [B, T, D]
+        seasonal_init, trend_init = self.decompsition(x)  # seasonal_init: [B, T, F]  trend_init: [B, T, F]
         # 将维度索引2与维度索引1交换
         seasonal_init, trend_init = seasonal_init.permute(
-            0, 2, 1), trend_init.permute(0, 2, 1)  # seasonal_init: [B, D, T]  trend_init: [B, D, T]
+            0, 2, 1), trend_init.permute(0, 2, 1)  # seasonal_init: [B, F, T]  trend_init: [B, F, T]
         if self.individual:
             seasonal_output = torch.zeros([seasonal_init.size(0), seasonal_init.size(1), self.pred_len],
                                           dtype=seasonal_init.dtype).to(seasonal_init.device)
@@ -111,17 +111,17 @@ class DLinear(nn.Module):
                     trend_init[:, i, :])
                 # 两者共享所有权重
         else:
-            seasonal_output = self.Linear_Seasonal(seasonal_init)  # seasonal_output: [B, D, P]
-            trend_output = self.Linear_Trend(trend_init)  # trend_output: [B, D, P]
+            seasonal_output = self.Linear_Seasonal(seasonal_init)  # seasonal_output: [B, F, P]
+            trend_output = self.Linear_Trend(trend_init)  # trend_output: [B, F, P]
         # 将季节性与趋势性相加
-        x = seasonal_output + trend_output  # x: [B, D, P]
+        x = seasonal_output + trend_output  # x: [B, F, P]
         return x.permute(0, 2, 1)
 
     def forward(self, x_enc, queue_ids):
-        # x_enc 输入shape: [B, T, D]
+        # x_enc 输入shape: [B, T, F]
         if self.use_RevIN:
             x = self.revin(x_enc, 'norm')
-        dec_out = self.encoder(x_enc)  # dec_out: [B, P, D]
+        dec_out = self.encoder(x_enc)  # dec_out: [B, P, F]
         if self.use_RevIN:
             dec_out = self.revin(dec_out, 'denorm')
         return dec_out[:, -self.pred_len:, 0:1]  # [B, P, 1]
