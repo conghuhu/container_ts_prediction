@@ -391,7 +391,7 @@ class Exp_Basic(object):
                 # 添加标题和轴标签
                 if idx == 1:
                     # 添加图例
-                    plt.legend(loc='upper left')
+                    plt.legend(prop=self.chinese_font, loc='upper left')
                 # plt.xlabel('Time Point')
                 ax.set_ylabel('CPU使用率', self.chinese_font)
                 # 在特定索引位置画一条直线
