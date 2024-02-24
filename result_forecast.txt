@@ -638,3 +638,9 @@ mse: 0.05570201948285103, mae: 0.1169583648443222, rmse: 0.2360127568244934, map
 huawei_dsformer_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el2_declinear_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinFalse_lossMSE  
 mse: 0.060101356357336044, mae: 0.1303406059741974, rmse: 0.24515578150749207, mape: 1.0937212705612183, mspe: 504.9781799316406
 
+huawei_dsformer_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinFalse_lossMSE  
+mse: 0.057733383029699326, mae: 0.11979170143604279, rmse: 0.2402777224779129, mape: 0.9834126830101013, mspe: 450.20452880859375
+
+huawei_dsformer_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el2_declinear_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinFalse_lossMSE  
+mse: 0.056259885430336, mae: 0.12101280689239502, rmse: 0.23719166219234467, mape: 1.0206682682037354, mspe: 454.9836730957031
+

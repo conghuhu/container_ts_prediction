@@ -222,7 +222,7 @@ class DsFormer(nn.Module):
         if dec_type == 'mlp':
             self.mlp = MLP(hidden_size, pred_len, hidden_size, 2, dropout, activation='relu')
         elif dec_type == 'linear':
-            self.projection = nn.Linear(hidden_size, pred_len*feature_size, bias=True)
+            self.projection = nn.Linear(hidden_size, pred_len, bias=True)
         else:
             raise Exception('不支持其他类型的解码器')
 
@@ -259,8 +259,8 @@ class DsFormer(nn.Module):
         enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
 
         if self.dec_type == 'mlp':
-            # dec_out = self.mlp(enc_out)[:, -self.pre_len:, :feature_size]  # enc_out: [B, P, D]
-            dec_out = self.mlp(enc_out)  # enc_out: [B, P, D]
+            dec_out = self.mlp(enc_out)[:, -self.pre_len:, :feature_size]  # enc_out: [B, P, D]
+            # dec_out = self.mlp(enc_out)  # enc_out: [B, P, D]
         elif self.dec_type == 'linear':
             dec_out = self.projection(enc_out)[:, -self.pre_len:, :feature_size]
         else:
