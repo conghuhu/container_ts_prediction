@@ -33,7 +33,7 @@ class Config:
     # model define
     hidden_size = 64  # 隐层大小
     num_layers = 2  # RNN的层数
-    bidirectional = False
+    bidirectional = True
 
     # optimization
     epochs = 100  # 迭代轮数
