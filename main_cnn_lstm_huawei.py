@@ -26,7 +26,7 @@ class Config:
     # forecasting task
     timestep = 144  # 时间步长，就是利用多少时间窗口
     feature_size = 18  # 每个步长对应的特征数量
-    output_size = 144  # 多输出任务，最终输出大小，预测未来几个时间步
+    output_size = 24  # 多输出任务，最终输出大小，预测未来几个时间步
     pre_len = output_size  # 预测长度
     inverse = False
 

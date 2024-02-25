@@ -27,7 +27,7 @@ class Config:
     timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 18  # 只预测CPU
     feature_size = 18  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 144  # 预测长度
+    pre_len = 96  # 预测长度
     inverse = False
 
     # model define
@@ -36,7 +36,7 @@ class Config:
     dec_layers = 1
     num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
     dropout = 0.1
-    forward_expansion = 8
+    forward_expansion = 16
     use_RevIN = False
 
     # optimization

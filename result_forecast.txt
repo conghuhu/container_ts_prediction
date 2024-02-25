@@ -662,4 +662,42 @@ mse: 0.04765024781227112, mae: 0.10739775002002716, rmse: 0.2182893604040146, ma
 huawei_dsformer_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE  
 mse: 0.04186195880174637, mae: 0.09598495066165924, rmse: 0.2046019583940506, mape: 0.9516457319259644, mspe: 383.1324157714844
 
+dsformer_ts96_fs12_os12_pl24_epoch100_lr0.001_bs256_hs128_el2_declinear_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE_trtrain  
+mse: 0.5145837068557739, mae: 0.2772972881793976, rmse: 0.7173448801040649, mape: 0.9882228374481201, mspe: 10.504711151123047
+
+dsformer_ts96_fs12_os12_pl24_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE_trtrain  
+mse: 0.5158898234367371, mae: 0.2788500189781189, rmse: 0.7182546854019165, mape: 0.9846487045288086, mspe: 10.287461280822754
+
+dsformer_ts96_fs12_os12_pl96_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE_trtrain  
+mse: 0.7591301202774048, mae: 0.33176693320274353, rmse: 0.8712807297706604, mape: 1.0196638107299805, mspe: 9.681827545166016
+
+group_id_DLinear_ftMS_ts96_fs12_pl96_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_lossMSE_trtrain  
+mse: 0.7874961495399475, mae: 0.3580293655395508, rmse: 0.8874098062515259, mape: 0.9836468696594238, mspe: 7.520325183868408
+
+huawei_dsformer_ts144_fs18_os18_pl96_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE  
+mse: 0.03822829946875572, mae: 0.09233812242746353, rmse: 0.1955205798149109, mape: 0.9472301602363586, mspe: 363.9451599121094
+
+huawei_dsformer_ts144_fs18_os18_pl48_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE  
+mse: 0.0318903848528862, mae: 0.0814119428396225, rmse: 0.17857879400253296, mape: 0.8695874214172363, mspe: 431.2565612792969
+
+huawei_dsformer_ts144_fs18_os18_pl24_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE  
+mse: 0.02520090714097023, mae: 0.06999187916517258, rmse: 0.15874794125556946, mape: 0.7390105724334717, mspe: 335.9839782714844
+
+huawei_DLinear_ftMS_ts144_fs18_pl96_epoch100_lr0.001_bs256_enc18_mavg25_individualFalse_lossMSE_revinFalse  
+mse: 0.12538371980190277, mae: 0.18357199430465698, rmse: 0.3540956377983093, mape: 1.972978115081787, mspe: 1543.55615234375
+
+huawei_DLinear_ftMS_ts144_fs18_pl48_epoch100_lr0.001_bs256_enc18_mavg25_individualFalse_lossMSE_revinFalse  
+mse: 0.07825841754674911, mae: 0.13589276373386383, rmse: 0.2797470688819885, mape: 1.4418007135391235, mspe: 1246.85986328125
+
+huawei_DLinear_ftMS_ts144_fs18_pl24_epoch100_lr0.001_bs256_enc18_mavg25_individualFalse_lossMSE_revinFalse  
+mse: 0.04573919251561165, mae: 0.09850379079580307, rmse: 0.21386723220348358, mape: 0.933822751045227, mspe: 397.1485900878906
+
+huawei_cnn_lstm_att_ftMS_ts144_fs18_os96_pl96_epoch100_lr0.001_bs256_rl2_hs64_oc64_biFalse  
+mse: 0.16303806006908417, mae: 0.17005889117717743, rmse: 0.4037797152996063, mape: 1.233775019645691, mspe: 616.3865356445312
+
+huawei_cnn_lstm_att_ftMS_ts144_fs18_os48_pl48_epoch100_lr0.001_bs256_rl2_hs64_oc64_biFalse  
+mse: 0.16398508846759796, mae: 0.16078874468803406, rmse: 0.40495073795318604, mape: 0.9950326085090637, mspe: 180.5059356689453
+
+huawei_cnn_lstm_att_ftMS_ts144_fs18_os24_pl24_epoch100_lr0.001_bs256_rl2_hs64_oc64_biFalse  
+mse: 0.14859864115715027, mae: 0.15307369828224182, rmse: 0.3854849338531494, mape: 0.8735466003417969, mspe: 243.2730255126953
 

@@ -26,7 +26,7 @@ class Config:
     # forecasting task
     timestep = 96  # 时间步长，就是利用多少时间窗口
     feature_size = 12  # 每个步长对应的特征数量
-    pre_len = 24  # 预测长度
+    pre_len = 96  # 预测长度
     inverse = False
 
     # model define
@@ -39,7 +39,7 @@ class Config:
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
-    loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
+    loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
     # GPU
