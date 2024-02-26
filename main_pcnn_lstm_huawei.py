@@ -33,9 +33,9 @@ class Config:
     # model define
     # num_channels = [32, 64, 128]  # 隐层大小
     num_channels = [32, 64]  # 隐层大小
-    num_layers = 1  # RNN的层数
+    num_layers = 2  # RNN的层数
     kernel_size = 3
-    dropout = 0.1
+    dropout = 0.2
 
     # optimization
     epochs = 100  # 迭代轮数
