@@ -352,6 +352,10 @@ class Exp_Basic(object):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
+        results_path = './predict_results/huawei/' + setting + '/'
+        if not os.path.exists(results_path):
+            os.makedirs(results_path)
+
         self.model.eval()
 
         if self.args.pred_mode == 'paper':
@@ -387,6 +391,8 @@ class Exp_Basic(object):
                             label='真实值')
                     ax.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
                             label='预测值')
+                    np.save(results_path + '{}_true.npy'.format(API_ID), true_show_data)
+                    np.save(results_path + '{}_pred.npy'.format(API_ID), pred[:, -1])
                     ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
                 else:
                     print('未实现多元预测多元的可视化')
