@@ -278,3 +278,35 @@ class DsFormer(nn.Module):
             output = self.revin(output, 'denorm')
 
         return output[:, -self.pre_len:, 0:1]
+
+    # 消融实验：去掉趋势分解
+    # def forward(self, x, queue_ids):
+    #     # x.shape(batch_size, timeStep, feature_size)
+    #     batch_size, timeStep, feature_size = x.shape
+
+    #     if self.use_RevIN:
+    #         x = self.revin(x, 'norm')
+
+    #     # Embedding
+    #     enc_out = self.enc_embedding(x, x_mark=None)  # enc_out: [B, T, hidden_size]
+
+    #     # timeStep, batch_size, hidden_size
+    #     enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
+
+    #     if self.dec_type == 'mlp':
+    #         enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
+    #         dec_out = self.mlp(enc_out).permute(0, 2, 1)  # enc_out: [B, P, D]
+    #     elif self.dec_type == 'linear':
+    #         enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
+    #         dec_out = self.projection(enc_out).permute(0, 2, 1) # enc_out: [B, D, P] -> [B, P, D]
+    #     else:
+    #         raise Exception('不支持其他类型的解码器')
+    #     dec_out = self.fc(dec_out) # enc_out: [B, P, F]
+
+    #     # 将季节性与趋势性相加
+    #     output = dec_out
+
+    #     if self.use_RevIN:
+    #         output = self.revin(output, 'denorm')
+
+    #     return output[:, -self.pre_len:, 0:1]
