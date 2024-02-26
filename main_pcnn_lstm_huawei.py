@@ -31,7 +31,7 @@ class Config:
     inverse = False
 
     # model define
-    num_channels = [64, 128, 256]  # 隐层大小
+    num_channels = [32, 64, 128]  # 隐层大小
     num_layers = 1  # RNN的层数
     kernel_size = 3
     dropout = 0.1
