@@ -8,7 +8,7 @@ class Exp_pCNN_LSTM(Exp_Basic):
 
     def _build_model(self):
         args = self.args
-        model = PCNN_LSTM(args.feature_size, args.output_size, args.hidden_size, args.num_layers,
-                          args.pre_len)
+        model = PCNN_LSTM(args.feature_size, args.output_size, args.pre_len, args.num_layers,
+                          args.num_channels, kernel_size=args.kernel_size, dropout=args.dropout, device=self.device)
         print(model)
         return model

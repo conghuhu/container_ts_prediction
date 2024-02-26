@@ -24,15 +24,17 @@ class Config:
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
-    timestep = 144  # 时间步长，就是利用多少时间窗口
+    timestep = 145  # 时间步长，就是利用多少时间窗口
     feature_size = 18  # 每个步长对应的特征数量
-    output_size = 144  # 多输出任务，最终输出大小，预测未来几个时间步
-    pre_len = output_size  # 预测长度
+    output_size = 18  # 多输出任务，最终输出大小，预测未来几个时间步
+    pre_len = 144  # 预测长度
     inverse = False
 
     # model define
-    hidden_size = 64  # 隐层大小
-    num_layers = 2  # RNN的层数
+    num_channels = [64, 128, 256]  # 隐层大小
+    num_layers = 1  # RNN的层数
+    kernel_size = 3
+    dropout = 0.1
 
     # optimization
     epochs = 100  # 迭代轮数
@@ -55,7 +57,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}'.format(
+setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_ks{}_drop{}'.format(
     config.model_name,
     config.features,
     config.timestep,
@@ -66,7 +68,7 @@ setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}'.forma
     config.learning_rate,
     config.batch_size,
     config.num_layers,
-    config.hidden_size)
+    config.num_channels, config.kernel_size, config.dropout)
 
 config.setting = setting
 exp = Exp_pCNN_LSTM(config)
