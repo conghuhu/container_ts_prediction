@@ -23,7 +23,7 @@ class MultivariateMultiStepLSTM(nn.Module):
         # Fully Connected Layer for output
         self.linear = nn.Linear(self.lstm_output_dim, output_size)
 
-        print("Number Parameters: cnn-lstm-attention", self.get_n_params())
+        print("Number Parameters: lstm", self.get_n_params())
 
     def get_n_params(self):
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())

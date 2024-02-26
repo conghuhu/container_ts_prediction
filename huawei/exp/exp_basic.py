@@ -360,7 +360,7 @@ class Exp_Basic(object):
 
         if self.args.pred_mode == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
-            target = [72, 150, 28]
+            target = [72, 150, 28, 165]
             # target = [147, 72, 150]
             plt.figure(dpi=300, figsize=(15, 10))
             idx = 1
@@ -383,7 +383,7 @@ class Exp_Basic(object):
                 # true_show_data.shape [timestep+pre_len]
 
                 # 绘图
-                ax = plt.subplot(3, 1, idx)
+                ax = plt.subplot(4, 1, idx)
                 if args.features == 'MS' or args.features == 'S':
                     # print("true_show_data: \n", true_show_data)
                     # print("pred data: \n", pred)
