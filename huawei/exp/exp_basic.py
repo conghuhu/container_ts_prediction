@@ -352,7 +352,7 @@ class Exp_Basic(object):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        results_path = './predict_results/huawei/' + setting + '/'
+        results_path = './predict_results/huawei/' + self.args.model_name + '/'
         if not os.path.exists(results_path):
             os.makedirs(results_path)
 
