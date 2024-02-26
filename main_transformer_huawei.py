@@ -27,7 +27,7 @@ class Config:
     timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 18  # 只预测CPU
     feature_size = 18  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 24  # 预测长度
+    pre_len = 144  # 预测长度
     inverse = False
 
     # model define
@@ -60,7 +60,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}'.format(
+setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}'.format(
     config.model_name,
     config.features,
     config.timestep,
