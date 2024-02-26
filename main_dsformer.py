@@ -26,7 +26,7 @@ class Config:
     timestep = 96  # 时间步长，就是利用多少时间窗口
     output_size = 12  # 只预测CPU
     feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 48  # 预测长度
+    pre_len = 96  # 预测长度
     inverse = False
 
     # model define
