@@ -26,12 +26,12 @@ class Config:
     timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 12  # 只预测CPU
     feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 144  # 预测长度
+    pre_len = 24  # 预测长度
     inverse = False
 
     # model define
     hidden_size = 64  # 隐层大小
-    enc_layers = 2
+    enc_layers = 1
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
