@@ -911,3 +911,9 @@ mse: 0.2920077443122864, mae: 0.2769533097743988, rmse: 0.5403774380683899, mape
 dsformer_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs128_el2_declinear_nh2_dp0.1_ffn1024_convTrue_factor2_activationgelu_mavg25_revinTrue_losssmoothl1_trtrain
 mse: 0.28161120414733887, mae: 0.2729889154434204, rmse: 0.5306705236434937, mape: 2.0634710788726807, mspe: 757.8402709960938
 
+group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualFalse_losssmoothl1_trtrain  
+mse: 0.2869624197483063, mae: 0.2755361795425415, rmse: 0.5356887578964233, mape: 2.0617921352386475, mspe: 782.9281616210938
+
+group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualFalse_lossMSE_trtrain  
+mse: 0.2920686900615692, mae: 0.2799762487411499, rmse: 0.5404338240623474, mape: 2.0976977348327637, mspe: 1011.0422973632812
+

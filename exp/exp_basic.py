@@ -358,10 +358,10 @@ class Exp_Basic(object):
 
         if self.args.pred_mode == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
-            target = [5, 4, 36]
+            target = [2, 3, 4, 5, 36]
             # target = [2, 36, 3]
             # target = [4, 36, 291]
-            plt.figure(dpi=300, figsize=(15, 10))
+            plt.figure(dpi=300, figsize=(20, 20))
             idx = 1
             for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):
                 queueId = batch_idx[0, 0, 0].item()
@@ -382,7 +382,7 @@ class Exp_Basic(object):
                 # true_show_data.shape [timestep+pre_len]
 
                 # 绘图
-                ax = plt.subplot(3, 1, idx)
+                ax = plt.subplot(5, 1, idx)
                 if args.features == 'MS' or args.features == 'S':
                     # print("true_show_data: \n", true_show_data)
                     # print("pred data: \n", pred)

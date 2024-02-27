@@ -282,16 +282,16 @@ class Dataset_Pred(Dataset):
         queueId = raw['QUEUE_ID']
         queue_ids = torch.full((self.timestep, 1), queueId, dtype=torch.long)
         if queueId == 2:
-            end = end - 400
+            end = end - 800
             # end = end - 1065
         elif queueId == 3:
-            end = end
+            end = end - 650
         elif queueId == 4:
             end = end - 400
             # end = end - 900
         elif queueId == 5:
-            # end = end - 300
-            end = end
+            end = end - 250
+            # end = end
         elif queueId == 36:
             end = end - 230
         return self.data_x[end], self.data_y[end], queue_ids
