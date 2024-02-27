@@ -12,10 +12,10 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    # model_name = 'dsformer'  # 模型名称
+    model_name = 'dsformer'  # 模型名称
     # model_name = 'dsformer_revin'  # 模型名称
     # model_name = 'dsformer_trend'  # 模型名称
-    model_name = 'dsformer_cam'  # 模型名称
+    # model_name = 'dsformer_cam'  # 模型名称
     save_path = '../checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
@@ -40,7 +40,7 @@ class Config:
     dropout = 0.1
     use_RevIN = False
     conv = True
-    factor = 3
+    factor = 1
     activation = 'gelu'
     moving_avg = 25
     dec_type = 'mlp'  # 解码器类型 ['mlp', 'linear']
