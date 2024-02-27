@@ -30,14 +30,14 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 128  # 隐层大小
+    hidden_size = 64  # 隐层大小
     enc_layers = 2
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
     use_RevIN = True
     conv = True
-    factor = 2
+    factor = 3
     activation = 'gelu'
     moving_avg = 25
     dec_type = 'linear'  # 解码器类型 ['mlp', 'linear']
