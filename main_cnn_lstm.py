@@ -24,7 +24,7 @@ class Config:
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
-    timestep = 96  # 时间步长，就是利用多少时间窗口
+    timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 24  # 多输出任务，最终输出层大小，预测未来几个时间步
     feature_size = 12  # 每个步长对应的特征数量
     pre_len = output_size  # 预测长度
@@ -32,9 +32,9 @@ class Config:
 
     # model define
     hidden_size = 64  # 隐层大小
-    num_layers = 2  # RNN的层数
-    bidirectional = False
-    out_channels = 64  # CNN输出通道
+    num_layers = 1  # RNN的层数
+    bidirectional = True
+    out_channels = 128  # CNN输出通道
     num_heads = 2  # 注意力机制头的数量
     dropout = 0.1
 
