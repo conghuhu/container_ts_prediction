@@ -23,15 +23,15 @@ class Config:
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
-    timestep = 96  # 时间步长，就是利用多少时间窗口
+    timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 12  # 只预测CPU
     feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 96  # 预测长度
+    pre_len = 144  # 预测长度
     inverse = False
 
     # model define
     hidden_size = 128  # 隐层大小
-    enc_layers = 2
+    enc_layers = 1
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
@@ -40,14 +40,14 @@ class Config:
     factor = 1
     activation = 'gelu'
     moving_avg = 25
-    dec_type = 'mlp'  # 解码器类型 ['mlp', 'linear']
+    dec_type = 'linear'  # 解码器类型 ['mlp', 'linear']
 
     # optimization
     epochs = 100  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
-    loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
+    loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
     # GPU

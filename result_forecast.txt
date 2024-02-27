@@ -875,3 +875,16 @@ mse: 0.21769925951957703, mae: 0.2532404959201813, rmse: 0.4665825366973877, map
 group_id_DLinear_ftMS_ts144_fs12_pl24_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_losssmoothl1_trtrain  
 mse: 0.20640426874160767, mae: 0.2470884919166565, rmse: 0.4543173611164093, mape: 0.8891111612319946, mspe: 33.79363250732422
 
+dsformer_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE_trtrain  
+mse: 0.3004881739616394, mae: 0.280414342880249, rmse: 0.5481680035591125, mape: 2.078000783920288, mspe: 952.7952880859375
+
+dsformer_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs128_el1_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_losssmoothl1_trtrain  
+mse: 0.29656416177749634, mae: 0.278417706489563, rmse: 0.5445770621299744, mape: 2.1482691764831543, mspe: 901.7523193359375
+
+dsformer_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_losssmoothl1_trtrain  
+mse: 0.2993510365486145, mae: 0.2777092158794403, rmse: 0.5471298098564148, mape: 2.120445728302002, mspe: 965.9257202148438
+
+# 最好的效果
+dsformer_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs128_el2_declinear_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_losssmoothl1_trtrain  
+mse: 0.2838723063468933, mae: 0.27376601099967957, rmse: 0.5327966809272766, mape: 2.070634603500366, mspe: 755.49267578125
+
