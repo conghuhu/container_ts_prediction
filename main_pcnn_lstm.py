@@ -1,6 +1,6 @@
 import argparse
 
-from exp.exp_cnn_lstm import Exp_CNN_LSTM
+from exp.exp_pcnn_lstm import Exp_pCNN_LSTM
 
 parser = argparse.ArgumentParser(description='CNN_LSTM_Attention time series Forecasting')
 
@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    model_name = 'cnn_lstm_att'  # 模型名称
+    model_name = 'pcnn_lstm'  # 模型名称
     save_path = './checkpoints/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
@@ -24,18 +24,17 @@ class Config:
     scale_type = 'standard'  # 标准化类型 "standard" "minmax"
 
     # forecasting task
-    timestep = 144  # 时间步长，就是利用多少时间窗口
-    output_size = 144  # 多输出任务，最终输出层大小，预测未来几个时间步
+    timestep = 145  # 时间步长，就是利用多少时间窗口
     feature_size = 12  # 每个步长对应的特征数量
-    pre_len = output_size  # 预测长度
+    output_size = 12  # 多输出任务，最终输出大小，预测未来几个时间步
+    pre_len = 144  # 预测长度
     inverse = False
 
     # model define
-    hidden_size = 64  # 隐层大小
+    # num_channels = [32, 64, 128]  # 隐层大小
+    num_channels = [32, 64]  # 隐层大小
     num_layers = 1  # RNN的层数
-    bidirectional = False
-    out_channels = 128  # CNN输出通道
-    num_heads = 2  # 注意力机制头的数量
+    kernel_size = 3
     dropout = 0.1
 
     # optimization
@@ -60,23 +59,21 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'group_id_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_oc{}_bi{}_tr{}'.format(config.model_name,
-                                                                                                   config.features,
-                                                                                                   config.timestep,
-                                                                                                   config.feature_size,
-                                                                                                   config.output_size,
-                                                                                                   config.pre_len,
-                                                                                                   config.epochs,
-                                                                                                   config.learning_rate,
-                                                                                                   config.batch_size,
-                                                                                                   config.num_layers,
-                                                                                                   config.hidden_size,
-                                                                                                   config.out_channels,
-                                                                                                   config.bidirectional,
-                                                                                                   config.train_range)
+setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_ks{}_drop{}_tr{}'.format(
+    config.model_name,
+    config.features,
+    config.timestep,
+    config.feature_size,
+    config.output_size,
+    config.pre_len,
+    config.epochs,
+    config.learning_rate,
+    config.batch_size,
+    config.num_layers,
+    config.num_channels, config.kernel_size, config.dropout, config.train_range)
 
 config.setting = setting
-exp = Exp_CNN_LSTM(config)
+exp = Exp_pCNN_LSTM(config)
 
 if args.mode == 'all' or args.mode == 'train':
     print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
