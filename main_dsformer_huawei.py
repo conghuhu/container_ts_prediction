@@ -40,7 +40,7 @@ class Config:
     dropout = 0.1
     use_RevIN = False
     conv = True
-    factor = 3
+    factor = 1
     activation = 'gelu'
     moving_avg = 25
     dec_type = 'mlp'  # 解码器类型 ['mlp', 'linear']
