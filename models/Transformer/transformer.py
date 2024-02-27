@@ -98,8 +98,8 @@ class Transformer(nn.Module):
         output_pos = output_pos.permute(1, 0, 2)
 
         if self.dec_type == 'mlp':
-            output = output.permute(0, 2, 1)
-            output = self.mlp(output).permute(0, 2, 1)
+            x = x.permute(0, 2, 1)
+            output = self.mlp(x).permute(0, 2, 1)
         elif self.dec_type == 'decoder':
             output = self.decoder(output, x)
         else:
