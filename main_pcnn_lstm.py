@@ -31,11 +31,11 @@ class Config:
     inverse = False
 
     # model define
-    # num_channels = [32, 64, 128]  # 隐层大小
-    num_channels = [32, 64]  # 隐层大小
+    num_channels = [32, 32, 32]  # 隐层大小
+    hidden_size = 64
     num_layers = 1  # RNN的层数
-    kernel_size = 3
-    dropout = 0.1
+    kernel_size = 2
+    dropout = 0.2
 
     # optimization
     epochs = 100  # 迭代轮数
@@ -59,7 +59,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_ks{}_drop{}_tr{}'.format(
+setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_nc{}_ks{}_drop{}_tr{}'.format(
     config.model_name,
     config.features,
     config.timestep,
@@ -70,6 +70,7 @@ setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_rl{}_hs{}_ks{}_d
     config.learning_rate,
     config.batch_size,
     config.num_layers,
+    config.hidden_size,
     config.num_channels, config.kernel_size, config.dropout, config.train_range)
 
 config.setting = setting
