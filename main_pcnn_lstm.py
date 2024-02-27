@@ -32,7 +32,7 @@ class Config:
 
     # model define
     num_channels = [32, 32, 32]  # 隐层大小
-    hidden_size = 64
+    hidden_size = 32
     num_layers = 1  # RNN的层数
     kernel_size = 2
     dropout = 0.2
