@@ -38,7 +38,7 @@ class Config:
     dropout = 0.1
     forward_expansion = 16
     use_RevIN = False
-    dec_type = 'mlp'  # ['decoder', 'mlp']
+    dec_type = 'decoder'  # ['decoder', 'mlp']
 
     # optimization
     epochs = 100  # 迭代轮数
