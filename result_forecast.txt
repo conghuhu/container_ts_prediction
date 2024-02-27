@@ -854,36 +854,24 @@ mse: 0.18301841616630554, mae: 0.16276633739471436, rmse: 0.4278065264225006, ma
 huawei_dsformer_cam_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor3_activationgelu_mavg25_revinFalse_lossMSE  
 mse: 0.17029115557670593, mae: 0.185032919049263, rmse: 0.4126634895801544, mape: 1.0940064191818237, mspe: 347.5475769042969
 
-dsformer_ts96_fs12_os12_pl96_epoch1_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE_trtrain  
-mse: 1.5951123237609863, mae: 0.38375580310821533, rmse: 1.2629776000976562, mape: 2.677178144454956, mspe: 6468.07373046875
-
-dsformer_ts96_fs12_os12_pl96_epoch1_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE_trtrain  
-mse: 1.5963231325149536, mae: 0.3840917646884918, rmse: 1.2634568214416504, mape: 2.673724889755249, mspe: 6147.265625
-
-dsformer_ts96_fs12_os12_pl96_epoch1_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE_trtrain  
-mse: 1.592268705368042, mae: 0.3836379051208496, rmse: 1.2618513107299805, mape: 2.6725099086761475, mspe: 6210.35009765625
-
-dsformer_ts96_fs12_os12_pl96_epoch1_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinTrue_lossMSE_trtrain  
-mse: 1.5932917594909668, mae: 0.38354456424713135, rmse: 1.2622566223144531, mape: 2.6764469146728516, mspe: 6292.7685546875
-
-group_id_DLinear_ftMS_ts96_fs12_pl96_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_lossMSE_trtrain  
-mse: 0.23251281678676605, mae: 0.22640042006969452, rmse: 0.48219582438468933, mape: 3.688922643661499, mspe: 10549.5927734375
-
 group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_lossMSE_trtrain  
-mse: 0.2451627254486084, mae: 0.23075903952121735, rmse: 0.49513909220695496, mape: 3.6306312084198, mspe: 9029.615234375
+mse: 0.24949507415294647, mae: 0.26798802614212036, rmse: 0.4994948208332062, mape: 1.0303088426589966, mspe: 48.5790901184082
 
-group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_lossMSE_trtrain  
-mse: 0.24440893530845642, mae: 0.22991670668125153, rmse: 0.4943773150444031, mape: 3.618649482727051, mspe: 8979.3720703125
+group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualFalse_lossMSE_trtrain  
+mse: 0.25099802017211914, mae: 0.26876404881477356, rmse: 0.500997006893158, mape: 1.0357862710952759, mspe: 49.00475311279297
 
-group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_lossMSE_trtrain  
-mse: 0.2729860842227936, mae: 0.25411999225616455, rmse: 0.5224807262420654, mape: 2.5407333374023438, mspe: 549.42822265625
+group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualFalse_losssmoothl1_trtrain  
+mse: 0.24638217687606812, mae: 0.26477181911468506, rmse: 0.49636900424957275, mape: 0.9936320185661316, mspe: 47.61496353149414
 
-group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_lossMSE_trtrain  
-mse: 0.24612684547901154, mae: 0.2361527383327484, rmse: 0.4961117208003998, mape: 2.6484878063201904, mspe: 996.5682983398438
+group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_losssmoothl1_trtrain  
+mse: 0.24487055838108063, mae: 0.2639986276626587, rmse: 0.4948439598083496, mape: 0.9999824166297913, mspe: 48.09455108642578
 
-group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_lossMSE_trtrain  
-mse: 0.2470962405204773, mae: 0.23722031712532043, rmse: 0.4970877468585968, mape: 2.5293540954589844, mspe: 863.9869995117188
+group_id_DLinear_ftMS_ts144_fs12_pl96_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_losssmoothl1_trtrain  
+mse: 0.23598524928092957, mae: 0.26147058606147766, rmse: 0.4857831299304962, mape: 0.9787429571151733, mspe: 43.385520935058594
 
-group_id_DLinear_ftMS_ts144_fs12_pl144_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_lossMSE_trtrain  
-mse: 0.25015437602996826, mae: 0.2680083215236664, rmse: 0.5001543760299683, mape: 1.0365946292877197, mspe: 48.82173538208008
+group_id_DLinear_ftMS_ts144_fs12_pl48_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_losssmoothl1_trtrain  
+mse: 0.21769925951957703, mae: 0.2532404959201813, rmse: 0.4665825366973877, mape: 0.9766855835914612, mspe: 40.11738967895508
+
+group_id_DLinear_ftMS_ts144_fs12_pl24_epoch100_lr0.001_bs256_enc12_mavg25_individualTrue_losssmoothl1_trtrain  
+mse: 0.20640426874160767, mae: 0.2470884919166565, rmse: 0.4543173611164093, mape: 0.8891111612319946, mspe: 33.79363250732422
 
