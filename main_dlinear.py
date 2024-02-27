@@ -26,13 +26,13 @@ class Config:
     # forecasting task
     timestep = 144  # 时间步长，就是利用多少时间窗口
     feature_size = 12  # 每个步长对应的特征数量
-    pre_len = 24  # 预测长度
+    pre_len = 144  # 预测长度
     inverse = False
 
     # model define
     enc_inc = feature_size  # encoder input size
     moving_avg = 25  # 移动平均窗口
-    individual = True  # 针对DLinear是否为每个变量（通道）单独建立一个线性层
+    individual = False  # 针对DLinear是否为每个变量（通道）单独建立一个线性层
 
     # optimization
     epochs = 100  # 迭代轮数
