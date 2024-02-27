@@ -14,7 +14,8 @@ class Config:
     # basic config
     # model_name = 'dsformer'  # 模型名称
     # model_name = 'dsformer_revin'  # 模型名称
-    model_name = 'dsformer_trend'  # 模型名称
+    # model_name = 'dsformer_trend'  # 模型名称
+    model_name = 'dsformer_cam'  # 模型名称
     save_path = '../checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
@@ -28,7 +29,7 @@ class Config:
     timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 18  # 只预测CPU
     feature_size = 18  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 144  # 预测长度
+    pre_len = 24  # 预测长度
     inverse = False
 
     # model define
@@ -38,8 +39,8 @@ class Config:
     num_heads = 2
     dropout = 0.1
     use_RevIN = False
-    conv = False
-    factor = 1
+    conv = True
+    factor = 3
     activation = 'gelu'
     moving_avg = 25
     dec_type = 'mlp'  # 解码器类型 ['mlp', 'linear']

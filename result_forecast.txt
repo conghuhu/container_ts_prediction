@@ -818,3 +818,36 @@ mse: 0.05589895695447922, mae: 0.11676100641489029, rmse: 0.2364296019077301, ma
 huawei_transformer_mlp_ftMS_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el1_dl1_nh2_dp0.1_ffn16_lossMSE_revinFalse_decmlp  
 mse: 0.144049271941185, mae: 0.180673286318779, rmse: 0.37953823804855347, mape: 1.235716700553894, mspe: 486.3407897949219
 
+huawei_transformer_mlp_ftMS_ts144_fs18_os18_pl96_epoch100_lr0.001_bs256_hs128_el1_dl1_nh2_dp0.1_ffn16_lossMSE_revinFalse_decmlp  
+mse: 0.16701959073543549, mae: 0.17321395874023438, rmse: 0.4086802899837494, mape: 1.22079598903656, mspe: 516.3497314453125
+
+huawei_transformer_mlp_ftMS_ts144_fs18_os18_pl48_epoch100_lr0.001_bs256_hs128_el1_dl1_nh2_dp0.1_ffn16_lossMSE_revinFalse_decmlp  
+mse: 0.1379805952310562, mae: 0.15084026753902435, rmse: 0.37145739793777466, mape: 1.0769785642623901, mspe: 719.5843505859375
+
+huawei_transformer_mlp_ftMS_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el1_dl1_nh2_dp0.1_ffn16_lossMSE_revinFalse_decmlp  
+mse: 0.13086478412151337, mae: 0.18230319023132324, rmse: 0.36175239086151123, mape: 1.4746174812316895, mspe: 762.351806640625
+
+huawei_dsformer_cam_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor1_activationgelu_mavg25_revinFalse_lossMSE  
+mse: 0.16181856393814087, mae: 0.20620056986808777, rmse: 0.4022667706012726, mape: 1.3285760879516602, mspe: 617.5693969726562
+
+huawei_dsformer_cam_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs256_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor3_activationgelu_mavg25_revinFalse_lossMSE  
+mse: 0.16066792607307434, mae: 0.17973999679088593, rmse: 0.40083402395248413, mape: 1.0028269290924072, mspe: 284.4250183105469
+
+huawei_dsformer_cam_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs256_el1_decmlp_nh2_dp0.1_ffn1024_convTrue_factor3_activationgelu_mavg25_revinFalse_lossMSE  
+mse: 0.16489790380001068, mae: 0.1965428590774536, rmse: 0.40607622265815735, mape: 1.218237280845642, mspe: 609.5096435546875
+
+huawei_dsformer_cam_ts144_fs18_os18_pl144_epoch100_lr0.001_bs256_hs128_el3_decmlp_nh2_dp0.1_ffn1024_convFalse_factor3_activationgelu_mavg25_revinFalse_lossMSE  
+mse: 0.2056969255208969, mae: 0.2003624141216278, rmse: 0.4535382390022278, mape: 1.4271609783172607, mspe: 926.391357421875
+
+huawei_transformer_mlp_ftMS_ts144_fs18_os18_pl24_epoch100_lr0.001_bs256_hs128_el1_dl1_nh2_dp0.1_ffn16_lossMSE_revinFalse_decmlp  
+mse: 0.15079297125339508, mae: 0.14992330968379974, rmse: 0.3883207142353058, mape: 1.058264970779419, mspe: 1098.4056396484375
+
+huawei_transformer_mlp_ftMS_ts144_fs18_os18_pl24_epoch100_lr0.001_bs256_hs128_el2_dl1_nh2_dp0.1_ffn16_lossMSE_revinFalse_decmlp  
+mse: 0.1643947958946228, mae: 0.18018992245197296, rmse: 0.4054562747478485, mape: 1.3400108814239502, mspe: 688.867919921875
+
+huawei_transformer_mlp_ftMS_ts144_fs18_os18_pl48_epoch100_lr0.001_bs256_hs128_el2_dl1_nh2_dp0.1_ffn16_lossMSE_revinFalse_decmlp  
+mse: 0.16947661340236664, mae: 0.18181420862674713, rmse: 0.411675363779068, mape: 1.3940300941467285, mspe: 935.7183837890625
+
+huawei_dsformer_cam_ts144_fs18_os18_pl24_epoch100_lr0.001_bs256_hs128_el2_decmlp_nh2_dp0.1_ffn1024_convTrue_factor3_activationgelu_mavg25_revinFalse_lossMSE  
+mse: 0.18301841616630554, mae: 0.16276633739471436, rmse: 0.4278065264225006, mape: 1.0015109777450562, mspe: 368.3876953125
+
