@@ -10,21 +10,36 @@ class Chomp1d(nn.Module):
         self.chomp_size = chomp_size
 
     def forward(self, x):
+        """
+        裁剪的模块，裁剪多出来的padding
+        """
         return x[:, :, :-self.chomp_size].contiguous()
 
 
 class TemporalBlock(nn.Module):
     def __init__(self, n_inputs, n_outputs, kernel_size, stride, dilation, padding, dropout=0.2):
+        """
+        相当于一个Residual block
+
+        :param n_inputs: int, 输入通道数
+        :param n_outputs: int, 输出通道数
+        :param kernel_size: int, 卷积核尺寸
+        :param stride: int, 步长，一般为1
+        :param dilation: int, 膨胀系数
+        :param padding: int, 填充系数
+        :param dropout: float, dropout比率
+        """
         super(TemporalBlock, self).__init__()
         self.conv1 = weight_norm(nn.Conv1d(n_inputs, n_outputs, kernel_size,
                                            stride=stride, padding=padding, dilation=dilation))
-        self.chomp1 = Chomp1d(padding)
+        # 经过conv1，输出的size其实是(Batch, input_channel, seq_len + padding)
+        self.chomp1 = Chomp1d(padding)  # 裁剪掉多出来的padding部分，维持输出时间步为seq_len
         self.relu1 = nn.ReLU()
         self.dropout1 = nn.Dropout(dropout)
 
         self.conv2 = weight_norm(nn.Conv1d(n_outputs, n_outputs, kernel_size,
                                            stride=stride, padding=padding, dilation=dilation))
-        self.chomp2 = Chomp1d(padding)
+        self.chomp2 = Chomp1d(padding)  # 裁剪掉多出来的padding部分，维持输出时间步为seq_len
         self.relu2 = nn.ReLU()
         self.dropout2 = nn.Dropout(dropout)
 
@@ -35,41 +50,69 @@ class TemporalBlock(nn.Module):
         self.init_weights()
 
     def init_weights(self):
+        """
+        参数初始化
+
+        :return:
+        """
         self.conv1.weight.data.normal_(0, 0.01)
         self.conv2.weight.data.normal_(0, 0.01)
         if self.downsample is not None:
             self.downsample.weight.data.normal_(0, 0.01)
 
     def forward(self, x):
+        """
+        :param x: size of (Batch, input_channel, seq_len)
+        :return:
+        """
         out = self.net(x)
         res = x if self.downsample is None else self.downsample(x)
         return self.relu(out + res)
 
 
-class PCNN_LSTM(nn.Module):
-    def __init__(self, feature_size, output_size, pre_len, num_layers, num_channels, kernel_size=2, dropout=0.2,
-                 device=torch.device('cpu')):
-        super(PCNN_LSTM, self).__init__()
+class TCN(nn.Module):
+    def __init__(self, num_inputs, channels, kernel_size=2, dropout=0.2):
+        """
+        :param num_inputs: int， 输入通道数
+        :param channels: list，每层的hidden_channel数，例如[25,25,25,25]表示有4个隐层，每层hidden_channel数为25
+        :param kernel_size: int, 卷积核尺寸
+        :param dropout: float, drop_out比率
+        """
+        super(TCN, self).__init__()
+        super().__init__()
         layers = []
-        self.pre_len = pre_len
-        self.n_layers = num_layers
-        self.hidden_size = num_channels[-2]
-        self.device = device
-
-        self.hidden = nn.Linear(num_channels[-1], num_channels[-2])
-        self.relu = nn.ReLU()
-        self.lstm = nn.LSTM(self.hidden_size, self.hidden_size, num_layers, bias=True,
-                            batch_first=True)  # output (batch_size, obs_len, hidden_size)
-        num_levels = len(num_channels)
+        num_levels = len(channels)
         for i in range(num_levels):
-            dilation_size = 2 ** i
-            in_channels = feature_size if i == 0 else num_channels[i - 1]
-            out_channels = num_channels[i]
+            dilation_size = 2 ** i  # 膨胀系数：1，2，4，8……
+            in_channels = num_inputs if i == 0 else channels[i - 1]  # 确定每一层的输入通道数
+            out_channels = channels[i]  # 确定每一层的输出通道数
             layers += [TemporalBlock(in_channels, out_channels, kernel_size, stride=1, dilation=dilation_size,
                                      padding=(kernel_size - 1) * dilation_size, dropout=dropout)]
 
         self.network = nn.Sequential(*layers)
-        self.linear = nn.Linear(num_channels[-2], output_size)
+
+    def forward(self, x):
+        """
+        :param x: size of (Batch, input_channel, seq_len)
+        :return: size of (Batch, output_channel, seq_len)
+        """
+        x = self.network(x)
+        return x
+
+
+class PCNN_LSTM(nn.Module):
+    def __init__(self, feature_size, output_size, pre_len, hidden_size, num_layers, num_channels, kernel_size=2,
+                 dropout=0.2,
+                 device=torch.device('cpu')):
+        super(PCNN_LSTM, self).__init__()
+        self.pre_len = pre_len
+        self.n_layers = num_layers
+        self.device = device
+
+        self.tcn = TCN(num_inputs=feature_size, channels=num_channels, kernel_size=kernel_size, dropout=dropout)
+        self.lstm = nn.LSTM(input_size=num_channels[-2], hidden_size=hidden_size,
+                            num_layers=num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
 
         print("Number Parameters: pCNN-LSTM", self.get_n_params())
 
@@ -79,24 +122,9 @@ class PCNN_LSTM(nn.Module):
         return number_params
 
     def forward(self, x, queue_ids):
-        x = x.permute(0, 2, 1)
-        x = self.network(x)
-        x = x.permute(0, 2, 1)
-
-        batch_size, obs_len, features_size = x.shape  # (batch_size, obs_len, features_size)
-        xconcat = self.hidden(x)  # (batch_size, obs_len, hidden_size)
-        H = torch.zeros(batch_size, obs_len - 1, self.hidden_size).to(
-            self.device)  # (batch_size, obs_len-1, hidden_size)
-        ht = torch.zeros(self.n_layers, batch_size, self.hidden_size).to(
-            self.device)  # (num_layers, batch_size, hidden_size)
-        ct = ht.clone()
-        for t in range(obs_len):
-            xt = xconcat[:, t, :].view(batch_size, 1, -1)  # (batch_size, 1, hidden_size)
-            out, (ht, ct) = self.lstm(xt, (ht, ct))  # ht size (num_layers, batch_size, hidden_size)
-            htt = ht[-1, :, :]  # (batch_size, hidden_size)
-            if t != obs_len - 1:
-                H[:, t, :] = htt
-        H = self.relu(H)  # (batch_size, obs_len-1, hidden_size)
-
-        x = self.linear(H)
+        x = x.permute(0, 2, 1)  # b i s
+        x = self.tcn(x)  # b h s
+        x = x.permute(0, 2, 1)  # b s h
+        x, _ = self.lstm(x)  # b, s, h
+        x = self.fc(x)  # b output_size
         return x[:, -self.pre_len:, 0:1]
