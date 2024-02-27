@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch import Tensor
 
 from models.RevIN.RevIN import RevIN
+from models.seqformer.DSFormer import MLP
 
 
 class PositionalEncoding(nn.Module):
@@ -33,10 +34,11 @@ class PositionalEncoding(nn.Module):
 class Transformer(nn.Module):
     def __init__(self, feature_size, hidden_size, num_layers, dec_layers, num_heads, dropout, device, pre_len, timestep,
                  output_size,
-                 use_RevIN=False, forward_expansion=8):
+                 use_RevIN=False, forward_expansion=8, dec_type='decoder'):
         super(Transformer, self).__init__()
         self.pre_len = pre_len
         self.use_RevIN = use_RevIN
+        self.dec_type = dec_type
         self.input_fc = nn.Linear(feature_size, hidden_size)
         self.pos_emb = PositionalEncoding(hidden_size)
         encoder_layer = nn.TransformerEncoderLayer(
@@ -58,17 +60,17 @@ class Transformer(nn.Module):
         self.output = nn.Embedding(pre_len, hidden_size)
         self.output_pos = nn.Embedding(pre_len, hidden_size)
         self.encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=dec_layers)
+
+        assert dec_type in ['mlp', 'decoder']
+        # 投影层，可替代解码器
+        if dec_type == 'mlp':
+            self.mlp = MLP(timestep, pre_len, hidden_size, 2, dropout, activation='gelu')
+        elif dec_type == 'decoder':
+            self.decoder = torch.nn.TransformerDecoder(decoder_layer, num_layers=dec_layers)
+        else:
+            raise Exception('不支持其他类型的解码器')
+
         self.fc = nn.Linear(hidden_size, output_size)
-        # self.fc_layers = nn.Sequential(
-        #     nn.Linear(timestep * hidden_size, hidden_size),
-        #     nn.ReLU(),
-        #     nn.Dropout(dropout),
-        #     nn.Linear(hidden_size, hidden_size),
-        #     nn.ReLU(),
-        #     nn.Dropout(dropout),
-        #     nn.Linear(hidden_size, pre_len)
-        # )
 
         if use_RevIN:
             self.revin = RevIN(feature_size)
@@ -95,12 +97,14 @@ class Transformer(nn.Module):
         output = output.permute(1, 0, 2)
         output_pos = output_pos.permute(1, 0, 2)
 
-        output = self.decoder(output, x)
+        if self.dec_type == 'mlp':
+            output = output.permute(0, 2, 1)
+            output = self.mlp(output).permute(0, 2, 1)
+        elif self.dec_type == 'decoder':
+            output = self.decoder(output, x)
+        else:
+            raise Exception('不支持其他类型的解码器')
         output = self.fc(output)
-
-        # 不经过解码器
-        # x = x.flatten(start_dim=1)  # [B, T*hidden_size]
-        # output = self.fc_layers(x)  # 通过Sequential模块处理
 
         if self.use_RevIN:
             output = self.revin(output, 'denorm')

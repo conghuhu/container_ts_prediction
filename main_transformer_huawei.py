@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    model_name = 'transformer'  # 模型名称
+    model_name = 'transformer_mlp'  # 模型名称
     save_path = './checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
@@ -38,9 +38,10 @@ class Config:
     dropout = 0.1
     forward_expansion = 16
     use_RevIN = False
+    dec_type = 'mlp'  # ['decoder', 'mlp']
 
     # optimization
-    epochs = 100  # 迭代轮数
+    epochs = 1  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
@@ -60,7 +61,7 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}'.format(
+setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}_dec{}'.format(
     config.model_name,
     config.features,
     config.timestep,
@@ -77,7 +78,7 @@ setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_n
     config.dropout,
     config.forward_expansion,
     config.loss_name,
-    config.use_RevIN)
+    config.use_RevIN, config.dec_type)
 
 config.setting = setting
 exp = Exp_Transformer(config)
