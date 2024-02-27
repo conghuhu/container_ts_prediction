@@ -41,7 +41,7 @@ class Config:
     dec_type = 'mlp'  # ['decoder', 'mlp']
 
     # optimization
-    epochs = 1  # 迭代轮数
+    epochs = 100  # 迭代轮数
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
