@@ -289,32 +289,32 @@ class Exp_Basic(object):
         if self.args.test_show == 'brief':
             plt.subplot(3, 1, 1)
             # 绘制历史数据
-            plt.plot(labels[13622:14260], label='TrueValue')
+            plt.plot(labels[0:3100], label='TrueValue')
             # 绘制预测数据
-            plt.plot(results[13622:14260], label='Prediction')
+            plt.plot(results[0:3100], label='Prediction')
             plt.ylabel(self.args.target)
-            plt.title('API_ID: {}'.format(36))
+            plt.title('API_ID: {}'.format(2))
             # plt.xticks(fontsize=20)
             # plt.yticks(fontsize=20)
             plt.legend(loc='upper right')
 
             plt.subplot(3, 1, 2)
             # 绘制历史数据
-            plt.plot(labels[16037:17803], label='TrueValue')
+            plt.plot(labels[7626:11438], label='TrueValue')
             # 绘制预测数据
-            plt.plot(results[16037:17803], label='Prediction')
+            plt.plot(results[7626:11438], label='Prediction')
             plt.ylabel(self.args.target)
-            plt.title('API_ID: {}'.format(291))
+            plt.title('API_ID: {}'.format(4))
             # plt.xticks(fontsize=20)
             # plt.yticks(fontsize=20)
 
             plt.subplot(3, 1, 3)
             # 绘制历史数据
-            plt.plot(labels[39467:42327], label='TrueValue')
+            plt.plot(labels[11439:12048], label='TrueValue')
             # 绘制预测数据
-            plt.plot(results[39467:42327], label='Prediction')
+            plt.plot(results[11439:12048], label='Prediction')
             plt.ylabel(self.args.target)
-            plt.title('API_ID: {}'.format(85153))
+            plt.title('API_ID: {}'.format(36))
             # plt.xticks(fontsize=20)
             # plt.yticks(fontsize=20)
 
@@ -350,12 +350,17 @@ class Exp_Basic(object):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
+        results_path = './predict_results/ds/' + self.args.model_name + '/'
+        if not os.path.exists(results_path):
+            os.makedirs(results_path)
+
         self.model.eval()
 
         if self.args.pred_mode == 'paper':
             # for循环里判断queueId是否在target中，不在则continue
-            # target = [36, 3, 82695]
-            target = [85265, 85267, 85619]
+            target = [2, 4, 36]
+            # target = [2, 36, 3]
+            # target = [4, 36, 291]
             plt.figure(dpi=300, figsize=(15, 10))
             idx = 1
             for i, (batch_x, batch_y, batch_idx) in enumerate(tqdm(pred_loader)):
@@ -385,6 +390,9 @@ class Exp_Basic(object):
                              label='真实值')
                     plt.plot(range(len(true_show_data) - args.pre_len, len(true_show_data)), pred[:, -1],
                              label='预测值')
+
+                    np.save(results_path + '{}_true.npy'.format(queueId), true_show_data)
+                    np.save(results_path + '{}_pred.npy'.format(queueId), pred[:, -1])
                 else:
                     print('未实现多元预测多元的可视化')
                     return

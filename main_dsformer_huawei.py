@@ -12,10 +12,10 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    # model_name = 'dsformer'  # 模型名称
+    model_name = 'dsformer'  # 模型名称
     # model_name = 'dsformer_revin'  # 模型名称
     # model_name = 'dsformer_trend'  # 模型名称
-    model_name = 'dsformer_cam'  # 模型名称
+    # model_name = 'dsformer_cam'  # 模型名称
     save_path = '../checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
@@ -38,7 +38,7 @@ class Config:
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
-    use_RevIN = False
+    use_RevIN = True
     conv = True
     factor = 1
     activation = 'gelu'
