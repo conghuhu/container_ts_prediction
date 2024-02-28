@@ -1193,3 +1193,51 @@ mse: 0.33745530247688293, mae: 0.307345986366272, rmse: 0.580909013748169, mape:
 group_id_lstm_ftMS_ts144_fs12_os96_pl96_epoch80_lr0.001_bs256_rl1_hs64_biTrue_trtrain  
 mse: 0.3324120044708252, mae: 0.2992657423019409, rmse: 0.5765517950057983, mape: 2.118762254714966, mspe: 1387.5587158203125
 
+dsformer_cam_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs64_el1_declinear_nh2_dp0.1_ffn1024_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.2816946804523468, mae: 0.2832074463367462, rmse: 0.5307491421699524, mape: 2.3007524013519287, mspe: 599.9246826171875
+
+dsformer_cam_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs32_el1_declinear_nh2_dp0.1_ffn1024_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.27616143226623535, mae: 0.29090917110443115, rmse: 0.5255106687545776, mape: 2.144850969314575, mspe: 567.577880859375
+
+dsformer_cam_ts144_fs12_os12_pl96_epoch100_lr0.001_bs256_hs32_el1_declinear_nh2_dp0.1_ffn1024_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.3087765574455261, mae: 0.2845710515975952, rmse: 0.5556766390800476, mape: 2.11837100982666, mspe: 1059.754150390625
+
+dsformer_cam_ts144_fs12_os12_pl48_epoch100_lr0.001_bs256_hs32_el1_declinear_nh2_dp0.1_ffn1024_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.28473690152168274, mae: 0.2822719216346741, rmse: 0.5336074233055115, mape: 2.1284937858581543, mspe: 544.8193359375
+
+dsformer_cam_ts144_fs12_os12_pl48_epoch100_lr0.001_bs256_hs32_el1_declinear_nh2_dp0.1_ffn512_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.27593305706977844, mae: 0.28051257133483887, rmse: 0.5252932906150818, mape: 2.0230674743652344, mspe: 695.9390258789062
+
+dsformer_cam_ts144_fs12_os12_pl48_epoch100_lr0.001_bs256_hs32_el1_declinear_nh2_dp0.1_ffn256_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.2688188850879669, mae: 0.280391663312912, rmse: 0.5184774398803711, mape: 2.1640474796295166, mspe: 657.4951782226562
+
+dsformer_cam_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs32_el1_declinear_nh2_dp0.1_ffn256_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.2802799344062805, mae: 0.2783180773258209, rmse: 0.529414713382721, mape: 1.9635155200958252, mspe: 465.0619201660156
+
+transformer_ftMS_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs32_el1_dl1_nh2_dp0.1_ffn16_losssmoothl1_revinFalse_decdecoder_trtrain  
+mse: 0.3488544523715973, mae: 0.29376882314682007, rmse: 0.5906389951705933, mape: 2.247868537902832, mspe: 745.5443115234375
+
+dsformer_cam_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs32_el1_declinear_nh2_dp0.1_ffn128_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.2842572331428528, mae: 0.29284077882766724, rmse: 0.5331577658653259, mape: 2.0345046520233154, mspe: 523.6392211914062
+
+dsformer_cam_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs32_el2_declinear_nh2_dp0.1_ffn256_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.2612871825695038, mae: 0.2690460979938507, rmse: 0.5111625790596008, mape: 2.007502555847168, mspe: 222.5730743408203
+
+transformer_ftMS_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs32_el1_dl1_nh2_dp0.1_ffn8_losssmoothl1_revinFalse_decdecoder_trtrain  
+mse: 0.3458029627799988, mae: 0.2918810546398163, rmse: 0.588050127029419, mape: 2.1832454204559326, mspe: 475.5826416015625
+
+dsformer_cam_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs32_el2_declinear_nh2_dp0.1_ffn512_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.2911947965621948, mae: 0.2728506624698639, rmse: 0.5396246910095215, mape: 2.243163585662842, mspe: 897.3032836914062
+
+transformer_ftMS_ts144_fs12_os12_pl48_epoch100_lr0.001_bs256_hs32_el1_dl1_nh2_dp0.1_ffn8_losssmoothl1_revinFalse_decdecoder_trtrain  
+mse: 0.40312641859054565, mae: 0.3152007758617401, rmse: 0.6349223852157593, mape: 2.3271145820617676, mspe: 678.9835205078125
+
+transformer_ftMS_ts144_fs12_os12_pl48_epoch100_lr0.001_bs256_hs32_el1_dl1_nh2_dp0.1_ffn8_losssmoothl1_revinFalse_decdecoder_trtrain  
+mse: 0.3408222496509552, mae: 0.2931027412414551, rmse: 0.5837998390197754, mape: 2.197434186935425, mspe: 735.0883178710938
+
+dsformer_cam_ts144_fs12_os12_pl96_epoch100_lr0.001_bs256_hs32_el2_declinear_nh2_dp0.1_ffn512_convTrue_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.27974313497543335, mae: 0.27733057737350464, rmse: 0.5289074778556824, mape: 2.059007406234741, mspe: 913.3973999023438
+
+transformer_ftMS_ts144_fs12_os12_pl96_epoch100_lr0.001_bs256_hs32_el1_dl1_nh2_dp0.1_ffn8_losssmoothl1_revinFalse_decdecoder_trtrain  
+mse: 0.3549497425556183, mae: 0.29744672775268555, rmse: 0.5957766175270081, mape: 2.3654606342315674, mspe: 747.708251953125
+
