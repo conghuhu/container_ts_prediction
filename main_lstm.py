@@ -25,14 +25,14 @@ class Config:
 
     # forecasting task
     timestep = 144  # 时间步长，就是利用多少时间窗口
-    output_size = 144  # 多输出任务，最终输出层大小，预测未来几个时间步
+    output_size = 96  # 多输出任务，最终输出层大小，预测未来几个时间步
     feature_size = 12  # 每个步长对应的特征数量
     pre_len = output_size  # 预测长度
     inverse = False
 
     # model define
     hidden_size = 64  # 隐层大小
-    num_layers = 2  # RNN的层数
+    num_layers = 1  # RNN的层数
     bidirectional = True
 
     # optimization
@@ -40,7 +40,7 @@ class Config:
     batch_size = 256  # 批次大小
     patience = 5  # 早停机制，如果损失多少个epochs没有改变就停止训练。
     learning_rate = 0.001  # 学习率
-    loss_name = 'smoothl1'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
+    loss_name = 'MSE'  # 损失函数名称 ['MSE', 'MAPE', 'MASE', 'SMAPE', 'smoothl1']
     lradj = 'cosine'  # 学习率的调整方式 ['type1', 'type2', 'cosine']
 
     # GPU
