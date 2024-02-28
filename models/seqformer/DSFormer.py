@@ -262,14 +262,14 @@ class DsFormer(nn.Module):
         enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
 
         if self.dec_type == 'mlp':
-            enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
+            enc_out = enc_out.permute(0, 2, 1)  # enc_out: [B, D, T]
             dec_out = self.mlp(enc_out).permute(0, 2, 1)  # enc_out: [B, P, D]
         elif self.dec_type == 'linear':
-            enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
-            dec_out = self.projection(enc_out).permute(0, 2, 1) # enc_out: [B, D, P] -> [B, P, D]
+            enc_out = enc_out.permute(0, 2, 1)  # enc_out: [B, D, T]
+            dec_out = self.projection(enc_out).permute(0, 2, 1)  # enc_out: [B, D, P] -> [B, P, D]
         else:
             raise Exception('不支持其他类型的解码器')
-        dec_out = self.fc(dec_out) # enc_out: [B, P, F]
+        dec_out = self.fc(dec_out)  # enc_out: [B, P, F]
 
         # 将季节性与趋势性相加
         output = dec_out + self.w_dec * trend_output  # output: [B, P, F]
