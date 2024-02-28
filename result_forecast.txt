@@ -1085,3 +1085,39 @@ mse: 0.28614962100982666, mae: 0.27761808037757874, rmse: 0.5349295735359192, ma
 transformer_ftMS_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs128_el1_dl1_nh2_dp0.1_ffn16_losssmoothl1_revinFalse_decdecoder_trtrain  
 mse: 0.40510305762290955, mae: 0.3161326050758362, rmse: 0.6364770531654358, mape: 2.221003532409668, mspe: 581.5244140625
 
+transformer_ftMS_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs64_el1_dl1_nh2_dp0.1_ffn16_losssmoothl1_revinFalse_decdecoder_trtrain  
+mse: 0.3563237488269806, mae: 0.2914026379585266, rmse: 0.596928596496582, mape: 2.149292469024658, mspe: 425.1268005371094
+
+dsformer_trend_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs64_el1_declinear_nh2_dp0.1_ffn1024_convFalse_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.2596038281917572, mae: 0.26571330428123474, rmse: 0.5095133185386658, mape: 1.842988133430481, mspe: 297.8031921386719
+
+transformer_ftMS_ts144_fs12_os12_pl24_epoch100_lr0.001_bs256_hs64_el1_dl1_nh2_dp0.1_ffn16_losssmoothl1_revinFalse_decmlp_trtrain  
+mse: 0.2700667083263397, mae: 0.2778300642967224, rmse: 0.5196794271469116, mape: 1.9895951747894287, mspe: 254.45518493652344
+
+transformer_ftMS_ts144_fs12_os12_pl48_epoch100_lr0.001_bs256_hs64_el1_dl1_nh2_dp0.1_ffn16_losssmoothl1_revinFalse_decmlp_trtrain  
+mse: 0.2723320424556732, mae: 0.2767508625984192, rmse: 0.5218544006347656, mape: 2.0052177906036377, mspe: 591.18701171875
+
+dsformer_trend_ts144_fs12_os12_pl48_epoch100_lr0.001_bs256_hs64_el1_declinear_nh2_dp0.1_ffn1024_convFalse_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.27207306027412415, mae: 0.270584374666214, rmse: 0.5216062068939209, mape: 1.8386493921279907, mspe: 447.05877685546875
+
+transformer_ftMS_ts144_fs12_os12_pl96_epoch100_lr0.001_bs256_hs64_el1_dl1_nh2_dp0.1_ffn16_losssmoothl1_revinFalse_decmlp_trtrain  
+mse: 0.3185916543006897, mae: 0.29634493589401245, rmse: 0.5644392371177673, mape: 2.1997733116149902, mspe: 744.1796875
+
+transformer_mlp_ftMS_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs64_el1_dl1_nh2_dp0.1_ffn16_losssmoothl1_revinFalse_decmlp_trtrain  
+mse: 0.3275972604751587, mae: 0.3021004796028137, rmse: 0.5723611116409302, mape: 2.0645132064819336, mspe: 933.4285278320312
+
+dsformer_trend_ts144_fs12_os12_pl96_epoch100_lr0.001_bs256_hs64_el1_declinear_nh2_dp0.1_ffn1024_convFalse_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.28237006068229675, mae: 0.2740135192871094, rmse: 0.531385064125061, mape: 1.9643815755844116, mspe: 663.1937866210938
+
+dsformer_trend_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs64_el1_declinear_nh2_dp0.1_ffn1024_convFalse_factor3_activationgelu_mavg25_revinFalse_losssmoothl1_trtrain  
+mse: 0.2862505316734314, mae: 0.27775073051452637, rmse: 0.5350238680839539, mape: 2.0099470615386963, mspe: 793.6856689453125
+
+huawei_pcnn_lstm_ftMS_ts145_fs12_os12_pl144_epoch100_lr0.001_bs256_rl1_hs32_nc[16, 16]_ks2_drop0.2_trtrain  
+mse: 0.3843637704849243, mae: 0.3116886615753174, rmse: 0.6199707984924316, mape: 2.0868587493896484, mspe: 602.07080078125
+
+dsformer_revin_ts144_fs12_os12_pl144_epoch100_lr0.001_bs256_hs64_el1_declinear_nh2_dp0.1_ffn1024_convFalse_factor3_activationgelu_mavg25_revinTrue_losssmoothl1_trtrain  
+mse: 0.2843325436115265, mae: 0.2746220827102661, rmse: 0.5332283973693848, mape: 2.082489013671875, mspe: 775.1048583984375
+
+huawei_pcnn_lstm_ftMS_ts145_fs12_os12_pl144_epoch100_lr0.001_bs256_rl1_hs32_nc[16, 16]_ks2_drop0.2_trtrain  
+mse: 0.3653041422367096, mae: 0.29675808548927307, rmse: 0.6044039726257324, mape: 2.094180107116699, mspe: 938.4752197265625
+

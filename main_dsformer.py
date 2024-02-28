@@ -38,8 +38,8 @@ class Config:
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
-    use_RevIN = False
-    conv = True
+    use_RevIN = True
+    conv = False
     factor = 3
     activation = 'gelu'
     moving_avg = 25
