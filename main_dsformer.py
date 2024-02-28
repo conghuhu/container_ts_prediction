@@ -13,9 +13,9 @@ args = parser.parse_args()
 class Config:
     # basic config
     # model_name = 'dsformer'  # 模型名称
-    model_name = 'dsformer_revin'  # 模型名称
+    # model_name = 'dsformer_revin'  # 模型名称
     # model_name = 'dsformer_trend'  # 模型名称
-    # model_name = 'dsformer_cam'  # 模型名称
+    model_name = 'dsformer_cam'  # 模型名称
     save_path = '../checkpoints/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
@@ -33,13 +33,13 @@ class Config:
     inverse = False
 
     # model define
-    hidden_size = 64  # 隐层大小
-    enc_layers = 1
-    ffn_hidden_size = 1024  # FFN隐层大小
+    hidden_size = 32  # 隐层大小
+    enc_layers = 2
+    ffn_hidden_size = 512  # FFN隐层大小
     num_heads = 2
     dropout = 0.1
-    use_RevIN = True
-    conv = False
+    use_RevIN = False
+    conv = True
     factor = 3
     activation = 'gelu'
     moving_avg = 25

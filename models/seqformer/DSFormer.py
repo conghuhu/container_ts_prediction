@@ -239,60 +239,28 @@ class DsFormer(nn.Module):
         number_params = sum([np.prod(p.size()) for p in model_parameters])
         return number_params
 
-    def forward(self, x, queue_ids):
-        # x.shape(batch_size, timeStep, feature_size)
-        batch_size, timeStep, feature_size = x.shape
-
-        if self.use_RevIN:
-            x = self.revin(x, 'norm')
-
-        # 季节与时间趋势性分解
-        seasonal_init, trend_init = self.decompsition(x)  # seasonal_init: [B, T, D]  trend_init: [B, T, D]
-        # 将维度索引2与维度索引1交换
-        trend_init = trend_init.permute(0, 2, 1)  # seasonal_init: [B, D, T]  trend_init: [B, D, T]
-        trend_output = self.Linear_Trend(trend_init).permute(0, 2, 1)  # trend_output: [B, P, D]
-
-        # 对于非线性部分和周期性特征进行学习
-        x = seasonal_init
-
-        # Embedding
-        enc_out = self.enc_embedding(x, x_mark=None)  # enc_out: [B, T, hidden_size]
-
-        # timeStep, batch_size, hidden_size
-        enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
-
-        if self.dec_type == 'mlp':
-            enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
-            dec_out = self.mlp(enc_out).permute(0, 2, 1)  # enc_out: [B, P, D]
-        elif self.dec_type == 'linear':
-            enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
-            dec_out = self.projection(enc_out).permute(0, 2, 1) # enc_out: [B, D, P] -> [B, P, D]
-        else:
-            raise Exception('不支持其他类型的解码器')
-        dec_out = self.fc(dec_out) # enc_out: [B, P, F]
-
-        # 将季节性与趋势性相加
-        output = dec_out + self.w_dec * trend_output  # output: [B, P, F]
-
-        if self.use_RevIN:
-            output = self.revin(output, 'denorm')
-
-        return output[:, -self.pre_len:, 0:1]
-
-    # 消融实验：去掉趋势分解
     # def forward(self, x, queue_ids):
     #     # x.shape(batch_size, timeStep, feature_size)
     #     batch_size, timeStep, feature_size = x.shape
-    #
+
     #     if self.use_RevIN:
     #         x = self.revin(x, 'norm')
-    #
+
+    #     # 季节与时间趋势性分解
+    #     seasonal_init, trend_init = self.decompsition(x)  # seasonal_init: [B, T, D]  trend_init: [B, T, D]
+    #     # 将维度索引2与维度索引1交换
+    #     trend_init = trend_init.permute(0, 2, 1)  # seasonal_init: [B, D, T]  trend_init: [B, D, T]
+    #     trend_output = self.Linear_Trend(trend_init).permute(0, 2, 1)  # trend_output: [B, P, D]
+
+    #     # 对于非线性部分和周期性特征进行学习
+    #     x = seasonal_init
+
     #     # Embedding
     #     enc_out = self.enc_embedding(x, x_mark=None)  # enc_out: [B, T, hidden_size]
-    #
+
     #     # timeStep, batch_size, hidden_size
     #     enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
-    #
+
     #     if self.dec_type == 'mlp':
     #         enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
     #         dec_out = self.mlp(enc_out).permute(0, 2, 1)  # enc_out: [B, P, D]
@@ -302,11 +270,43 @@ class DsFormer(nn.Module):
     #     else:
     #         raise Exception('不支持其他类型的解码器')
     #     dec_out = self.fc(dec_out) # enc_out: [B, P, F]
-    #
+
     #     # 将季节性与趋势性相加
-    #     output = dec_out
-    #
+    #     output = dec_out + self.w_dec * trend_output  # output: [B, P, F]
+
     #     if self.use_RevIN:
     #         output = self.revin(output, 'denorm')
-    #
+
     #     return output[:, -self.pre_len:, 0:1]
+
+    # 消融实验：去掉趋势分解
+    def forward(self, x, queue_ids):
+        # x.shape(batch_size, timeStep, feature_size)
+        batch_size, timeStep, feature_size = x.shape
+    
+        if self.use_RevIN:
+            x = self.revin(x, 'norm')
+    
+        # Embedding
+        enc_out = self.enc_embedding(x, x_mark=None)  # enc_out: [B, T, hidden_size]
+    
+        # timeStep, batch_size, hidden_size
+        enc_out, attns = self.encoder(enc_out)  # enc_out: [B, T, hidden_size]
+    
+        if self.dec_type == 'mlp':
+            enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
+            dec_out = self.mlp(enc_out).permute(0, 2, 1)  # enc_out: [B, P, D]
+        elif self.dec_type == 'linear':
+            enc_out = enc_out.permute(0, 2, 1) # enc_out: [B, D, T]
+            dec_out = self.projection(enc_out).permute(0, 2, 1) # enc_out: [B, D, P] -> [B, P, D]
+        else:
+            raise Exception('不支持其他类型的解码器')
+        dec_out = self.fc(dec_out) # enc_out: [B, P, F]
+    
+        # 将季节性与趋势性相加
+        output = dec_out
+    
+        if self.use_RevIN:
+            output = self.revin(output, 'denorm')
+    
+        return output[:, -self.pre_len:, 0:1]
