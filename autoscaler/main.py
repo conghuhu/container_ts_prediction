@@ -15,8 +15,12 @@ poly = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
 
 def process_data():
     # Load the datasets
-    replica_data_path = '../datasets/replica/replica_data.csv'
+    replica_data_path = '../datasets/hpa_week/replica_data.csv'
     replica_data = pd.read_csv(replica_data_path)
+    # 描述数据集
+    print("数据集描述如下：")
+    print(replica_data.describe())
+
     # 添加时间特征
     replica_data['time'] = pd.to_datetime(replica_data['time'])
     replica_data['hour'] = replica_data['time'].dt.hour
@@ -192,8 +196,11 @@ def test_model(rf_model, X_test, y_test, model_type='randomForest'):
 
 
 def predict(rf_model):
-    predict_data_path = '../datasets/replica/predict_data.csv'
+    predict_data_path = '../datasets/hpa_week/predict/predict_data.csv'
     predict_data = pd.read_csv(predict_data_path)
+    print("预测集描述如下：")
+    print(predict_data.describe())
+
     # 使用训练好的模型对预测数据集进行预测
     predict_data['time'] = pd.to_datetime(predict_data['time'])
     predict_data['hour'] = predict_data['time'].dt.hour
@@ -224,7 +231,7 @@ def predict(rf_model):
 
 
 if __name__ == '__main__':
-    model_type = 'xgboost'
+    model_type = 'randomForest'
     X_train, X_test, y_train, y_test = process_data()
     model = train_model(X_train, y_train, model_type, 'grid')
 
