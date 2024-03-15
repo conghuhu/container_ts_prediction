@@ -13,9 +13,6 @@ rcParams.update(config)
 
 print("+++++++++++++++++++++")
 
-font_path = 'C:\\Users\\15841\\AppData\\Local\\Microsoft\\Windows\\Fonts\\宋体-粗体.ttf'
-font_manager.fontManager.addfont(font_path)
-prop = font_manager.FontProperties(fname=font_path)
 # 定义字体font1
 font1 = {'family': 'Times New Roman',
          'weight': 'normal',
@@ -34,7 +31,8 @@ range_start = 120
 range_num = 240
 
 
-def draw_pod_resource():
+# 2.1章图片（被动式扩容）
+def draw_reactive_pod_resource():
     mem_df = pd.read_csv('../datasets/hpa/cpu_total.csv')
     pod_df = pd.read_csv('../datasets/hpa/pod_count.csv')
 
@@ -57,6 +55,34 @@ def draw_pod_resource():
     plt.tight_layout()
     plt.legend(prop=font2)
     plt.savefig('./pod_resource.svg', format='svg', dpi=800,
+                bbox_inches='tight')
+    plt.show()
+
+
+# 2.1章图片（主动式扩容）
+def draw_active_pod_resource():
+    mem_df = pd.read_csv('../datasets/hpa/cpu_total.csv')
+    pod_df = pd.read_csv('../datasets/hpa/pod_count.csv')
+
+    range_start = 180
+    range_num = 300
+    mem_df = mem_df[range_start:range_num]
+    pod_df = pod_df[range_start+6:range_num+6]
+    # 二者对value归一化
+    mem_df['value'] = mem_df['value'] / mem_df['value'].max()
+    pod_df['value'] = pod_df['value'] / pod_df['value'].max()
+
+    plt.figure(figsize=(12, 8))
+    plt.plot([i for i in range(0, range_num - range_start)], mem_df['value'], label='实例所需资源')
+    plt.plot([i for i in range(0, range_num - range_start)], pod_df['value'], label='实例扩容资源')
+    # plt.plot(data['value'], label='API')
+    # plt.ylabel('CPU使用率(%)', font2)
+    plt.xlabel('时间步', font2)
+    plt.grid(True)
+    plt.xticks()
+    plt.tight_layout()
+    plt.legend(prop=font2)
+    plt.savefig('./active_pod_resource.svg', format='svg', dpi=800,
                 bbox_inches='tight')
     plt.show()
 
@@ -283,10 +309,11 @@ def calc_metrics():
 
 
 if __name__ == '__main__':
-    draw_qps()
+    # draw_qps()
     # draw_cpu()
     # draw_mem()
     # draw_request_time()
     # draw_replicas()
     # calc_metrics()
     # draw_pod_resource()
+    draw_active_pod_resource()

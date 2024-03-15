@@ -3,9 +3,9 @@ from sklearn.impute import KNNImputer
 
 
 def concat():
-    cpu_df = pd.read_csv('../datasets/replica/cpu_avg.csv')
-    mem_df = pd.read_csv('../datasets/replica/mem_avg.csv')
-    count_df = pd.read_csv('../datasets/replica/pod_count.csv')
+    cpu_df = pd.read_csv('../datasets/hpa_week/cpu_avg.csv')
+    mem_df = pd.read_csv('../datasets/hpa_week/mem_avg.csv')
+    count_df = pd.read_csv('../datasets/hpa_week/pod_count.csv')
 
     cpu_df['value'] = cpu_df['value'] * 100
     count_df['value'] = count_df['value'].astype(int)
@@ -24,13 +24,18 @@ def concat():
     new_order = ['time', 'CPU_AVG_USAGE', 'MEM_AVG_USAGE', 'CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'POD_COUNT']
     df_merged = df_merged[new_order]
 
-    df_merged.to_csv('../datasets/replica/replica_data.csv', index=False)
+    df_merged['CPU_AVG_USAGE'] = df_merged['CPU_AVG_USAGE'].round(2)
+    df_merged['MEM_AVG_USAGE'] = df_merged['MEM_AVG_USAGE'].round(2)
+    df_merged['CPU_TOTAL_USAGE'] = df_merged['CPU_TOTAL_USAGE'].round(2)
+    df_merged['MEM_TOTAL_USAGE'] = df_merged['MEM_TOTAL_USAGE'].round(2)
+
+    df_merged.to_csv('../datasets/hpa_week/replica_data.csv', index=False)
 
 
 def concat_predict():
-    cpu_df = pd.read_csv('../datasets/replica/cpu_avg.csv')
-    mem_df = pd.read_csv('../datasets/replica/mem_avg.csv')
-    count_df = pd.read_csv('../datasets/replica/pod_count.csv')
+    cpu_df = pd.read_csv('../datasets/hpa_week/predict/cpu_avg.csv')
+    mem_df = pd.read_csv('../datasets/hpa_week/predict/mem_avg.csv')
+    count_df = pd.read_csv('../datasets/hpa_week/predict/pod_count.csv')
 
     cpu_df['value'] = cpu_df['value'] * 100
     count_df['value'] = count_df['value'].astype(int)
@@ -46,14 +51,17 @@ def concat_predict():
 
     df_merged['CPU_TOTAL_USAGE'] = df_merged['CPU_AVG_USAGE'] * df_merged['POD_COUNT']
     df_merged['MEM_TOTAL_USAGE'] = df_merged['MEM_AVG_USAGE'] * df_merged['POD_COUNT']
-    new_order = ['time', 'CPU_AVG_USAGE', 'MEM_AVG_USAGE', 'CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'POD_COUNT']
+    new_order = ['time', 'CPU_TOTAL_USAGE', 'MEM_TOTAL_USAGE', 'POD_COUNT']
     df_merged = df_merged[new_order]
 
-    df_merged.to_csv('../datasets/replica/replica_predict_data.csv', index=False)
+    df_merged['CPU_TOTAL_USAGE'] = df_merged['CPU_TOTAL_USAGE'].round(2)
+    df_merged['MEM_TOTAL_USAGE'] = df_merged['MEM_TOTAL_USAGE'].round(2)
+
+    df_merged.to_csv('../datasets/hpa_week/predict/predict_data.csv', index=False)
 
 
 def fill_na():
-    replica_df = pd.read_csv('../datasets/replica/replica_data.csv')
+    replica_df = pd.read_csv('../datasets/hpa_week/replica_data.csv')
 
     # Initialize the KNN Imputer
     imputer = KNNImputer(n_neighbors=5)
@@ -81,26 +89,26 @@ def fill_na():
     # Verify the changes
     print(imputed_data_df.head(), (imputed_data_df[imputed_data_df['POD_COUNT'] == 0][columns_to_zero] == 0).all())
 
-    imputed_data_df.to_csv('../datasets/replica/replica_data.csv', index=False)
+    imputed_data_df.to_csv('../datasets/hpa_week/replica_data.csv', index=False)
 
 
 def add_expected_value():
-    replica_df = pd.read_csv('../datasets/replica/replica_data.csv')
+    replica_df = pd.read_csv('../datasets/hpa_week/replica_data.csv')
     # 新增expected_CPU列，值全部赋值为1
     replica_df['expected_CPU_AVG_USAGE'] = 60.00
     # 新增expected_MEM列，值全部赋值为1
     replica_df['expected_MEM_AVG_USAGE'] = 70.00
-    replica_df.to_csv('../datasets/replica/replica_data.csv', index=False)
+    replica_df.to_csv('../datasets/hpa_week/replica_data.csv', index=False)
 
-    predict_df = pd.read_csv('../datasets/replica/predict_data.csv')
+    predict_df = pd.read_csv('../datasets//hpa_week/predict/predict_data.csv')
     predict_df['expected_CPU_AVG_USAGE'] = 60.00
     predict_df['expected_MEM_AVG_USAGE'] = 70.00
-    predict_df.to_csv('../datasets/replica/predict_data.csv', index=False)
+    predict_df.to_csv('../datasets//hpa_week/predict/predict_data.csv', index=False)
 
 
 if __name__ == '__main__':
-    # concat()
+    concat()
     # 勿动
-    # concat_predict()
-    # fill_na()
+    concat_predict()
+    fill_na()
     add_expected_value()
