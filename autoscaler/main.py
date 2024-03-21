@@ -231,7 +231,7 @@ def predict(rf_model):
 
 
 if __name__ == '__main__':
-    model_type = 'randomForest'
+    model_type = 'lightgbm'
     X_train, X_test, y_train, y_test = process_data()
     model = train_model(X_train, y_train, model_type, 'grid')
 
