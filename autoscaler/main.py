@@ -50,6 +50,7 @@ def process_data():
 
 def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
     start_time = time.time()
+    best_params = None
     # Training the Random Forest Regressor
     if model_type == 'randomForest':
         if train_mode == 'grid':
@@ -75,6 +76,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
 
             # 使用最佳参数的模型进行预测
             rf_model = grid_search.best_estimator_
+            best_params = grid_search.best_params_
         else:
             rf_model = RandomForestRegressor(n_estimators=500, max_depth=None, random_state=42)
             rf_model.fit(X_train, y_train)
@@ -102,6 +104,8 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
             print("Best score found: ", grid_search.best_score_)
             # Use the best parameters to re-train the model
             rf_model = grid_search.best_estimator_
+
+            best_params = grid_search.best_params_
         else:
             rf_model = ElasticNet(alpha=1.0, l1_ratio=0.9, random_state=42)
             rf_model.fit(X_train, y_train)
@@ -134,6 +138,8 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
             print("Best score found: ", grid_search.best_score_)
             # Use the best parameters to re-train the model
             rf_model = grid_search.best_estimator_
+
+            best_params = grid_search.best_params_
         else:
             rf_model = XGBRegressor(n_estimators=500, max_depth=10, learning_rate=0.01, subsample=0.5,
                                     colsample_bytree=1, min_child_weight=1,
@@ -164,6 +170,8 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
 
             # Use the best parameters to re-train the model
             rf_model = grid_search.best_estimator_
+
+            best_params = grid_search.best_params_
         else:
             rf_model = LGBMRegressor(n_estimators=500, max_depth=5, learning_rate=0.01, subsample=0.7, num_leaves=60,
                                      colsample_bytree=0.75, reg_alpha=0.01, reg_lambda=0.01,
@@ -173,6 +181,12 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
         raise Exception(f"Model type {model_type} not supported")
     end_time = time.time()  # 记录结束时间
     print(f"模型训练耗时: {end_time - start_time} 秒")
+
+    f = open("result_reg.txt", 'a')
+    f.write(model_type + "  \n")
+    f.write('{} Best Params: {}'.format(model_type, best_params))
+    f.write('\n')
+    f.close()
     return rf_model
 
 
@@ -186,9 +200,8 @@ def test_model(rf_model, X_test, y_test, model_type='randomForest'):
     rmse = np.sqrt(mse)
     r2 = r2_score(y_test, y_pred)
 
-    print(f"Model Evaluation:\nMSE: {mse}\nMAE: {mae}\nRMSE: {rmse}\nR2 Score: {r2}")
+    print(f"{model_type} Model Evaluation:\nMSE: {mse}\nMAE: {mae}\nRMSE: {rmse}\nR2 Score: {r2}")
     f = open("result_reg.txt", 'a')
-    f.write(model_type + "  \n")
     f.write('MSE: {}, MAE: {}, RMSE: {}, R2: {}'.format(mse, mae, rmse, r2))
     f.write('\n')
     f.write('\n')
@@ -231,7 +244,7 @@ def predict(rf_model):
 
 
 if __name__ == '__main__':
-    model_type = 'lightgbm'
+    model_type = 'linearRegression'
     X_train, X_test, y_train, y_test = process_data()
     model = train_model(X_train, y_train, model_type, 'grid')
 
