@@ -15,7 +15,7 @@ poly = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
 
 def process_data():
     # Load the datasets
-    replica_data_path = '../datasets/hpa_week/replica_data.csv'
+    replica_data_path = './datasets/hpa_week/replica_data.csv'
     replica_data = pd.read_csv(replica_data_path)
     # 描述数据集
     print("数据集描述如下：")
@@ -113,7 +113,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
         if train_mode == 'grid':
             # Best parameters found:  {'colsample_bytree': 1, 'early_stopping_rounds': 10, 'gamma': 0, 'learning_rate': 0.1, 'max_depth': 5, 'min_child_weight': 2, 'n_estimators': 400, 'reg_alpha': 1, 'reg_lambda': 0, 'subsample': 1}
             param_grid = {
-                'n_estimators': [400, 500, 1000],
+                'n_estimators': [100, 300, 500, 1000],
                 'max_depth': [i for i in range(3, 11, 2)],
                 'learning_rate': [0.01, 0.05, 0.1],
                 'subsample': [0.5, 0.7, 1],
@@ -149,15 +149,15 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
         if train_mode == 'grid':
             # Best parameters found:  {'colsample_bytree': 0.75, 'early_stopping_round': 10, 'learning_rate': 0.05, 'max_depth': -1, 'n_estimators': 300, 'num_leaves': 60, 'reg_alpha': 0, 'reg_lambda': 0, 'subsample': 0.5}
             param_grid = {
-                'num_leaves': [28, 31, 60],  # Adjust based on dataset size and complexity
-                'max_depth': [3, 5, 10, -1],  # -1 means no limit
+                'num_leaves': [28, 31, 60, 80],  # Adjust based on dataset size and complexity
+                'max_depth': [3, 5, 10, 15, -1],  # -1 means no limit
                 'learning_rate': [0.1, 0.01, 0.05],
-                'n_estimators': [100, 300, 500, 1000],
+                'n_estimators': [100,200, 300, 400],
                 'early_stopping_round': [10],
                 'subsample': [0.5, 0.7, 1],
                 'colsample_bytree': [0.5, 0.75, 1],
-                'reg_alpha': [0, 1e-2, 1, 1e2, 1e3],
-                'reg_lambda': [0, 1e-2, 1, 1e3, 1e3],
+                'reg_alpha': [0, 1e-2, 0.5, 1, 1e2, 1e3],
+                'reg_lambda': [0, 1e-2, 0.5, 1, 1e3, 1e3],
             }
             lgbm = LGBMRegressor(random_state=42)
             grid_search = GridSearchCV(estimator=lgbm, param_grid=param_grid, cv=3, scoring='neg_mean_squared_error',
@@ -209,7 +209,7 @@ def test_model(rf_model, X_test, y_test, model_type='randomForest'):
 
 
 def predict(rf_model):
-    predict_data_path = '../datasets/hpa_week/predict/predict_data.csv'
+    predict_data_path = './datasets/hpa_week/predict/predict_data.csv'
     predict_data = pd.read_csv(predict_data_path)
     print("预测集描述如下：")
     print(predict_data.describe())
@@ -244,7 +244,7 @@ def predict(rf_model):
 
 
 if __name__ == '__main__':
-    model_type = 'linearRegression'
+    model_type = 'lightgbm'
     X_train, X_test, y_train, y_test = process_data()
     model = train_model(X_train, y_train, model_type, 'grid')
 
