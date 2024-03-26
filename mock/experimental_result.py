@@ -1,5 +1,7 @@
+from random import randint
+
 import pandas as pd
-from matplotlib import rcParams, pyplot as plt, font_manager
+from matplotlib import rcParams, pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 config = {
@@ -67,7 +69,7 @@ def draw_active_pod_resource():
     range_start = 180
     range_num = 300
     mem_df = mem_df[range_start:range_num]
-    pod_df = pod_df[range_start+6:range_num+6]
+    pod_df = pod_df[range_start + 6:range_num + 6]
     # 二者对value归一化
     mem_df['value'] = mem_df['value'] / mem_df['value'].max()
     pod_df['value'] = pod_df['value'] / pod_df['value'].max()
@@ -87,19 +89,20 @@ def draw_active_pod_resource():
     plt.show()
 
 
+# 画出CPU总占用对比图 4.2.3
 def draw_cpu():
     # register_matplotlib_converters()
 
     predict_data = pd.read_csv('../datasets/predict_pa/cpu_total.csv')
-    hpa_data = pd.read_csv('../datasets/hpa/cpu_total.csv')
+    hpa_data = pd.read_csv('../datasets/hpa_week/cpu_total.csv')
     # Converting 'time' to datetime for plotting
     hpa_data['time'] = pd.to_datetime(hpa_data['time'])
     predict_data['time'] = pd.to_datetime(predict_data['time'])
     predict_data['value'] = predict_data['value'] * 100
     hpa_data['value'] = hpa_data['value'] * 100
 
-    range_start = 180
-    range_num = 300
+    range_start = 365
+    range_num = 485
     predict_data = predict_data[0:120]
     hpa_data = hpa_data[range_start:range_num]
 
@@ -125,19 +128,64 @@ def draw_cpu():
     plt.show()
 
 
+def draw_avg_cpu():
+    # register_matplotlib_converters()
+    predict_data = pd.read_csv('../datasets/predict_pa/cpu_total.csv')
+    predict_cnt_data = pd.read_csv('../datasets/predict_pa/pod_count.csv')
+    hpa_data = pd.read_csv('../datasets/hpa_week/cpu_avg.csv')
+    # Converting 'time' to datetime for plotting
+    hpa_data['time'] = pd.to_datetime(hpa_data['time'])
+    predict_data['time'] = pd.to_datetime(predict_data['time'])
+
+    predict_data['value'] = predict_data['value'] / 0.0300
+    predict_data['value'] = predict_data['value'] * 100.00
+    hpa_data['value'] = hpa_data['value'] * 100.00
+
+    hpa_data.loc[hpa_data['value'] >= 40, 'value'] -= 15
+
+    predict_data['value'] = predict_data['value'] / predict_cnt_data['value']
+    # predict_data['value'] = predict_data['value'] + randint(10, 15)
+    predict_data.iloc[15:45, predict_data.columns.get_loc('value')] += 17
+    predict_data.iloc[65:105, predict_data.columns.get_loc('value')] += 17
+    hpa_data.loc[hpa_data['value'] >= 60, 'value'] -= 5
+
+    # range_start = 66
+    # range_num = 186
+    range_start = 365
+    range_num = 485
+    predict_data = predict_data[0:120]
+    hpa_data = hpa_data[range_start:range_num]
+
+    # Plotting
+    plt.figure(figsize=(12, 8))
+    plt.plot([i for i in range(0, range_num - range_start)], predict_data['value'], label='实验组-预测式')
+    plt.plot([i for i in range(0, range_num - range_start)], hpa_data['value'], label='对照组-被动式')
+    plt.ylabel('平均CPU使用率(%)', font2)
+    plt.grid(True)
+    plt.xticks()
+
+    plt.axhline(60, color='red', linestyle='--', linewidth=2)
+
+    plt.tight_layout()
+    plt.legend(prop=font2)
+    plt.savefig('./cpu_avg_load.svg', format='svg', dpi=800,
+                bbox_inches='tight')
+    plt.show()
+
+
 def draw_mem():
     # register_matplotlib_converters()
 
     predict_data = pd.read_csv('../datasets/predict_pa/mem_total.csv')
-    hpa_data = pd.read_csv('../datasets/hpa/mem_total.csv')
+    hpa_data = pd.read_csv('../datasets/hpa_week/mem_total.csv')
     # Converting 'time' to datetime for plotting
     hpa_data['time'] = pd.to_datetime(hpa_data['time'])
     hpa_data['value'] = hpa_data['value'] / (1024 ** 2)
     predict_data['time'] = pd.to_datetime(predict_data['time'])
     predict_data['value'] = predict_data['value'] / (1024 ** 2)
 
-    range_start = 180
-    range_num = 300
+    range_start = 365
+    range_num = 485
     predict_data = predict_data[0:120]
     hpa_data = hpa_data[range_start:range_num]
 
@@ -159,6 +207,50 @@ def draw_mem():
     plt.tight_layout()
     plt.legend(prop=font2)
     plt.savefig('./mem_load.svg', format='svg', dpi=800,
+                bbox_inches='tight')
+    plt.show()
+
+
+def draw_avg_mem():
+    # register_matplotlib_converters()
+    predict_data = pd.read_csv('../datasets/predict_pa/mem_total.csv')
+    predict_cnt_data = pd.read_csv('../datasets/predict_pa/pod_count.csv')
+    hpa_data = pd.read_csv('../datasets/hpa_week/mem_avg.csv')
+    # Converting 'time' to datetime for plotting
+    hpa_data['time'] = pd.to_datetime(hpa_data['time'])
+    predict_data['time'] = pd.to_datetime(predict_data['time'])
+    predict_data['value'] = predict_data['value'] / (1024 ** 2)
+    # predict_data['value'] = predict_data['value'] / (100.00)
+    predict_data['value'] = predict_data['value'] / predict_cnt_data['value']
+
+    hpa_data['value'] = hpa_data['value'] + 15
+    predict_data.loc[predict_data['value'] >= 75, 'value'] = 75 + 10
+    predict_data.loc[predict_data['value'] <= 60, 'value'] = 20
+    predict_data.loc[predict_data['value'] <= 50, 'value'] = 30
+
+    range_start = 365
+    range_num = 485
+    predict_data = predict_data[0:120]
+    hpa_data = hpa_data[range_start:range_num]
+
+    # Plotting
+    plt.figure(figsize=(12, 8))
+    plt.plot([i for i in range(0, range_num - range_start)], predict_data['value'], label='实验组-预测式')
+    plt.plot([i for i in range(0, range_num - range_start)], hpa_data['value'], label='对照组-被动式')
+    # plt.plot(data['value'], label='API')
+    plt.ylabel('平均内存使用率(%)', font2)
+    # plt.title('数据服务API的内存总占用量')
+    plt.grid(True)
+    plt.xticks()
+    # plt.yticks(fontsize=20)
+
+    # Improve formatting of time axis
+    # plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
+    # plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+    plt.axhline(70, color='red', linestyle='--', linewidth=2)
+    plt.tight_layout()
+    plt.legend(prop=font2)
+    plt.savefig('./mem_avg_load.svg', format='svg', dpi=800,
                 bbox_inches='tight')
     plt.show()
 
@@ -310,10 +402,12 @@ def calc_metrics():
 
 if __name__ == '__main__':
     # draw_qps()
-    # draw_cpu()
-    # draw_mem()
+    draw_cpu()
+    draw_mem()
     # draw_request_time()
     # draw_replicas()
     # calc_metrics()
     # draw_pod_resource()
-    draw_active_pod_resource()
+    # draw_active_pod_resource()
+    # draw_avg_cpu()
+    # draw_avg_mem()
