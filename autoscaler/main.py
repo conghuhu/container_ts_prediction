@@ -1,7 +1,9 @@
+import os
 import time
 
 import numpy as np
 import pandas as pd
+import psutil
 from lightgbm import LGBMRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression, ElasticNet
@@ -152,7 +154,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
                 'num_leaves': [28, 31, 60, 80],  # Adjust based on dataset size and complexity
                 'max_depth': [3, 5, 10, 15, -1],  # -1 means no limit
                 'learning_rate': [0.1, 0.01, 0.05],
-                'n_estimators': [100,200, 300, 400],
+                'n_estimators': [100, 200, 300, 400],
                 'early_stopping_round': [10],
                 'subsample': [0.5, 0.7, 1],
                 'colsample_bytree': [0.5, 0.75, 1],
@@ -241,6 +243,14 @@ def predict(rf_model):
     # Displaying the rounded predicted POD_COUNTs
     print("Predicted POD_COUNTs (ceil to the largest integer):")
     print(rounded_predicted_pod_count)
+
+
+def get_current_memory_gb() -> int:
+    # 获取当前进程内存占用。
+    pid = os.getpid()
+    p = psutil.Process(pid)
+    info = p.memory_full_info()
+    return info.uss / 1024. / 1024. / 1024
 
 
 if __name__ == '__main__':
