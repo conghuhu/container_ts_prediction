@@ -17,7 +17,7 @@ poly = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
 
 def process_data():
     # Load the datasets
-    replica_data_path = './datasets/hpa_week/replica_data.csv'
+    replica_data_path = '../datasets/hpa_week/replica_data.csv'
     replica_data = pd.read_csv(replica_data_path)
     # 描述数据集
     print("数据集描述如下：")
@@ -80,7 +80,8 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
             rf_model = grid_search.best_estimator_
             best_params = grid_search.best_params_
         else:
-            rf_model = RandomForestRegressor(n_estimators=500, max_depth=None, random_state=42)
+            rf_model = RandomForestRegressor(n_estimators=300, max_depth=None, min_samples_split=2, min_samples_leaf=1,
+                                             random_state=42)
             rf_model.fit(X_train, y_train)
     elif model_type == 'linearRegression':
         rf_model = LinearRegression()
@@ -109,7 +110,7 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
 
             best_params = grid_search.best_params_
         else:
-            rf_model = ElasticNet(alpha=1.0, l1_ratio=0.9, random_state=42)
+            rf_model = ElasticNet(alpha=0.1, l1_ratio=0.1, random_state=42)
             rf_model.fit(X_train, y_train)
     elif model_type == 'xgboost':
         if train_mode == 'grid':
@@ -143,9 +144,9 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
 
             best_params = grid_search.best_params_
         else:
-            rf_model = XGBRegressor(n_estimators=500, max_depth=10, learning_rate=0.01, subsample=0.5,
-                                    colsample_bytree=1, min_child_weight=1,
-                                    early_stopping_rounds=10, random_state=42)
+            rf_model = XGBRegressor(n_estimators=300, max_depth=9, learning_rate=0.1, subsample=1,
+                                    colsample_bytree=1, min_child_weight=0,
+                                    early_stopping_rounds=10, random_state=42, gamma=0, reg_alpha=1, reg_lambda=0.5)
             rf_model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=True)
     elif model_type == 'lightgbm':
         if train_mode == 'grid':
@@ -175,8 +176,8 @@ def train_model(X_train, y_train, model_type='randomForest', train_mode='grid'):
 
             best_params = grid_search.best_params_
         else:
-            rf_model = LGBMRegressor(n_estimators=500, max_depth=5, learning_rate=0.01, subsample=0.7, num_leaves=60,
-                                     colsample_bytree=0.75, reg_alpha=0.01, reg_lambda=0.01,
+            rf_model = LGBMRegressor(n_estimators=300, max_depth=-1, learning_rate=0.1, subsample=0.5, num_leaves=60,
+                                     colsample_bytree=1, reg_alpha=1, reg_lambda=1,
                                      early_stopping_round=10, random_state=42)
             rf_model.fit(X_train, y_train, eval_set=[(X_test, y_test)])
     else:
@@ -211,7 +212,7 @@ def test_model(rf_model, X_test, y_test, model_type='randomForest'):
 
 
 def predict(rf_model):
-    predict_data_path = './datasets/hpa_week/predict/predict_data.csv'
+    predict_data_path = '../datasets/hpa_week/predict/predict_data.csv'
     predict_data = pd.read_csv(predict_data_path)
     print("预测集描述如下：")
     print(predict_data.describe())
@@ -245,18 +246,39 @@ def predict(rf_model):
     print(rounded_predicted_pod_count)
 
 
-def get_current_memory_gb() -> int:
+def get_current_memory_gb() -> float:
     # 获取当前进程内存占用。
     pid = os.getpid()
     p = psutil.Process(pid)
     info = p.memory_full_info()
-    return info.uss / 1024. / 1024. / 1024
+    return info.uss / 1024. / 1024.
+
+
+def count_info(func):
+    def float_info():
+        pid = os.getpid()
+        p = psutil.Process(pid)
+        info_start = p.memory_full_info().uss / 1024
+        func()
+        info_end = p.memory_full_info().uss / 1024
+        print("程序占用了内存" + str(info_end - info_start) + "KB")
+
+    return float_info
+
+
+@count_info
+def main_process():
+    nums = 100
+    for i in range(nums):
+        print(f"第{i}次训练")
+        model = train_model(X_train, y_train, model_type, 'use')
+        test_model(model, X_test, y_test, model_type)
+        predict(model)
 
 
 if __name__ == '__main__':
-    model_type = 'lightgbm'
+    model_type = 'xgboost'
     X_train, X_test, y_train, y_test = process_data()
-    model = train_model(X_train, y_train, model_type, 'grid')
+    main_process()
 
-    test_model(model, X_test, y_test, model_type)
-    predict(model)
+    # model = train_model(X_train, y_train, model_type, 'grid')
