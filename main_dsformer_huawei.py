@@ -102,3 +102,8 @@ if args.mode == 'all' or args.mode == 'test':
 if args.mode == 'all' or args.mode == 'pred':
     print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.predict(setting, load=True)
+
+if args.mode == 'all' or args.mode == 'benchmark':
+    print('>>>>>>>benchmark : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    for i in range(5):
+        exp.benchmark(setting, load=True)

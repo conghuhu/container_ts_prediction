@@ -26,7 +26,7 @@ class Config:
     # forecasting task
     timestep = 144  # 时间步长，就是利用多少时间窗口
     feature_size = 18  # 每个步长对应的特征数量
-    pre_len = 144  # 预测长度
+    pre_len = 24  # 预测长度
     inverse = False
 
     # model define
@@ -84,3 +84,7 @@ if args.mode == 'all' or args.mode == 'test':
 if args.mode == 'all' or args.mode == 'pred':
     print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.predict(setting, load=True)
+
+if args.mode == 'all' or args.mode == 'benchmark':
+    print('>>>>>>>benchmark : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    exp.benchmark(setting, load=True)

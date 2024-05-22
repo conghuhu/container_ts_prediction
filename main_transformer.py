@@ -13,8 +13,8 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    # model_name = 'transformer'  # 模型名称
-    model_name = 'transformer_mlp'  # 模型名称
+    model_name = 'transformer'  # 模型名称
+    # model_name = 'transformer_mlp'  # 模型名称
     save_path = './checkpoints/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
@@ -28,7 +28,7 @@ class Config:
     timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 12  # 只预测CPU
     feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 144  # 预测长度
+    pre_len = 24  # 预测长度
     inverse = False
 
     # model define
@@ -39,7 +39,7 @@ class Config:
     dropout = 0.1
     forward_expansion = 16
     use_RevIN = False
-    dec_type = 'mlp'  # ['decoder', 'mlp']
+    dec_type = 'decoder'  # ['decoder', 'mlp']
 
     # optimization
     epochs = 100  # 迭代轮数
@@ -95,3 +95,8 @@ if args.mode == 'all' or args.mode == 'test':
 if args.mode == 'all' or args.mode == 'pred':
     print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.predict(setting, load=True)
+
+if args.mode == 'all' or args.mode == 'benchmark':
+    print('>>>>>>>benchmark : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    for i in range(5):
+        exp.benchmark(setting, load=True)

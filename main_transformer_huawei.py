@@ -13,7 +13,8 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    model_name = 'transformer_mlp'  # 模型名称
+    model_name = 'transformer'  # 模型名称
+    # model_name = 'transformer_mlp'  # 模型名称
     save_path = './checkpoints/huawei/{}.pth'.format(model_name)  # 最优模型保存路径
 
     # data loader
@@ -27,18 +28,18 @@ class Config:
     timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 18  # 只预测CPU
     feature_size = 18  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 48  # 预测长度
+    pre_len = 144  # 预测长度
     inverse = False
 
     # model define
     hidden_size = 128  # 隐层大小
-    enc_layers = 2  # encoder层数
+    enc_layers = 1  # encoder层数
     dec_layers = 1
     num_heads = 2  # nhead数和d_model也就是嵌入维度必须满足整除关系
     dropout = 0.1
     forward_expansion = 16
     use_RevIN = False
-    dec_type = 'mlp'  # ['decoder', 'mlp']
+    dec_type = 'decoder'  # ['decoder', 'mlp']
 
     # optimization
     epochs = 100  # 迭代轮数
@@ -61,7 +62,26 @@ class Config:
 config = Config()
 
 # setting record of experiments
-setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}_dec{}'.format(
+# setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}_dec{}'.format(
+#     config.model_name,
+#     config.features,
+#     config.timestep,
+#     config.feature_size,
+#     config.output_size,
+#     config.pre_len,
+#     config.epochs,
+#     config.learning_rate,
+#     config.batch_size,
+#     config.hidden_size,
+#     config.enc_layers,
+#     config.dec_layers,
+#     config.num_heads,
+#     config.dropout,
+#     config.forward_expansion,
+#     config.loss_name,
+#     config.use_RevIN, config.dec_type)
+
+setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_nh{}_dp{}_ffn{}_loss{}_revin{}'.format(
     config.model_name,
     config.features,
     config.timestep,
@@ -78,7 +98,7 @@ setting = 'huawei_{}_ft{}_ts{}_fs{}_os{}_pl{}_epoch{}_lr{}_bs{}_hs{}_el{}_dl{}_n
     config.dropout,
     config.forward_expansion,
     config.loss_name,
-    config.use_RevIN, config.dec_type)
+    config.use_RevIN)
 
 config.setting = setting
 exp = Exp_Transformer(config)
@@ -94,3 +114,8 @@ if args.mode == 'all' or args.mode == 'test':
 if args.mode == 'all' or args.mode == 'pred':
     print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.predict(setting, load=True)
+
+if args.mode == 'all' or args.mode == 'benchmark':
+    print('>>>>>>>benchmark : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    for i in range(5):
+        exp.benchmark(setting, load=True)

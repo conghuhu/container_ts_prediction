@@ -464,6 +464,34 @@ class Exp_Basic(object):
 
             closePlots()
 
+    def benchmark(self, setting, load=False, args=None):
+        test_data_set, test_loader = self._get_data(flag='test')
+        if load:
+            print('loading model')
+            path = os.path.join(self.args.checkpoints, setting)
+            best_model_path = path + '/' + 'checkpoint.pth'
+            self.model.load_state_dict(torch.load(best_model_path))
+
+        self.model.eval()
+
+        count = 1
+
+        with torch.no_grad():
+            torch.cuda.synchronize()
+            time_start = time.time()
+            for batch_x, batch_y, batch_idx in tqdm(test_loader):
+                if count == 100:
+                    break
+                # pred shape: [batch_size, pred_len, 1]
+                pred, true = self._process_one_batch(test_data_set, batch_x, batch_y, batch_idx)
+                count += 1
+
+            torch.cuda.synchronize()
+            time_end = time.time()
+            time_sum = time_end - time_start
+            print('压测结束：模型推理{}个负载序列的耗时为{}ms'.format(count, int(round(time_sum * 1000))))
+        return
+
     def _process_one_batch(self, dataset_object, batch_x, batch_y, batch_idx):
         batch_x = batch_x.to(self.device)
         batch_y = batch_y.to(self.device)

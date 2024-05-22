@@ -12,9 +12,9 @@ args = parser.parse_args()
 
 class Config:
     # basic config
-    # model_name = 'dsformer'  # 模型名称
+    model_name = 'dsformer'  # 模型名称
     # model_name = 'dsformer_revin'  # 模型名称
-    model_name = 'dsformer_trend'  # 模型名称
+    # model_name = 'dsformer_trend'  # 模型名称
     # model_name = 'dsformer_cam'  # 模型名称
     save_path = '../checkpoints/{}.pth'.format(model_name)  # 最优模型保存路径
 
@@ -29,11 +29,11 @@ class Config:
     timestep = 144  # 时间步长，就是利用多少时间窗口
     output_size = 12  # 只预测CPU
     feature_size = 12  # 每个步长对应的特征数量（跟数据集处理有关，我只保留了七个特征）
-    pre_len = 144  # 预测长度
+    pre_len = 96  # 预测长度
     inverse = False
 
     # model define
-    hidden_size = 128  # 隐层大小
+    hidden_size = 64  # 隐层大小
     enc_layers = 2
     ffn_hidden_size = 1024  # FFN隐层大小
     num_heads = 2
@@ -43,7 +43,7 @@ class Config:
     factor = 3
     activation = 'gelu'
     moving_avg = 25
-    dec_type = 'mlp'  # 解码器类型 ['mlp', 'linear']
+    dec_type = 'linear'  # 解码器类型 ['mlp', 'linear']
 
     # optimization
     epochs = 100  # 迭代轮数
@@ -104,3 +104,8 @@ if args.mode == 'all' or args.mode == 'test':
 if args.mode == 'all' or args.mode == 'pred':
     print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.predict(setting, load=True)
+
+if args.mode == 'all' or args.mode == 'benchmark':
+    print('>>>>>>>benchmark : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    for i in range(5):
+        exp.benchmark(setting, load=True)

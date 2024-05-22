@@ -27,15 +27,16 @@ class Config:
     timestep = 145  # 时间步长，就是利用多少时间窗口
     feature_size = 18  # 每个步长对应的特征数量
     output_size = 18  # 多输出任务，最终输出大小，预测未来几个时间步
-    pre_len = 24  # 预测长度
+    pre_len = 144  # 预测长度
     inverse = False
 
     # model define
-    # num_channels = [32, 64, 128]  # 隐层大小
-    num_channels = [32, 64]  # 隐层大小
-    num_layers = 2  # RNN的层数
+    num_channels = [32, 64, 128]  # 隐层大小
+    hidden_size = 64
+    # num_channels = [32, 64]  # 隐层大小
+    num_layers = 1  # RNN的层数
     kernel_size = 3
-    dropout = 0.2
+    dropout = 0.1
 
     # optimization
     epochs = 100  # 迭代轮数
@@ -85,3 +86,8 @@ if args.mode == 'all' or args.mode == 'test':
 if args.mode == 'all' or args.mode == 'pred':
     print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.predict(setting, load=True)
+
+if args.mode == 'all' or args.mode == 'benchmark':
+    print('>>>>>>>benchmark : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    for i in range(5):
+        exp.benchmark(setting, load=True)
