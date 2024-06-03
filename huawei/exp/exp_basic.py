@@ -465,7 +465,7 @@ class Exp_Basic(object):
             closePlots()
 
     def benchmark(self, setting, load=False, args=None):
-        test_data_set, test_loader = self._get_data(flag='test')
+        test_data_set, test_loader = self._get_data(flag='train')
         if load:
             print('loading model')
             path = os.path.join(self.args.checkpoints, setting)
@@ -480,7 +480,7 @@ class Exp_Basic(object):
             torch.cuda.synchronize()
             time_start = time.time()
             for batch_x, batch_y, batch_idx in tqdm(test_loader):
-                if count == 100:
+                if count == 1000:
                     break
                 # pred shape: [batch_size, pred_len, 1]
                 pred, true = self._process_one_batch(test_data_set, batch_x, batch_y, batch_idx)

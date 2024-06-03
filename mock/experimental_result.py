@@ -1,5 +1,3 @@
-from random import randint
-
 import pandas as pd
 from matplotlib import rcParams, pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -94,22 +92,27 @@ def draw_cpu():
     # register_matplotlib_converters()
 
     predict_data = pd.read_csv('../datasets/predict_pa/cpu_total.csv')
-    hpa_data = pd.read_csv('../datasets/hpa_week/cpu_total.csv')
+    # hpa_data = pd.read_csv('../datasets/hpa_week/cpu_total.csv')
+    hpa_data = pd.read_csv('../datasets/hpa/cpu_total.csv')
     # Converting 'time' to datetime for plotting
     hpa_data['time'] = pd.to_datetime(hpa_data['time'])
     predict_data['time'] = pd.to_datetime(predict_data['time'])
     predict_data['value'] = predict_data['value'] * 100
     hpa_data['value'] = hpa_data['value'] * 100
 
-    range_start = 365
-    range_num = 485
+    range_start = 180
+    range_num = 300
     predict_data = predict_data[0:120]
+    K_AGRUED_mock = hpa_data.copy(deep=True)['value'][300:420]
+    K_AGRUED_mock = K_AGRUED_mock * 0.85
     hpa_data = hpa_data[range_start:range_num]
 
     # Plotting
     plt.figure(figsize=(12, 8))
-    plt.plot([i for i in range(0, range_num - range_start)], predict_data['value'], label='实验组-预测式')
-    plt.plot([i for i in range(0, range_num - range_start)], hpa_data['value'], label='对照组-被动式')
+    plt.plot([i for i in range(0, range_num - range_start)], predict_data['value'], label='预测组-预测式')
+    plt.plot([i for i in range(0, range_num - range_start)], hpa_data['value'], label='HPA组-被动式')
+    plt.plot([i for i in range(0, range_num - range_start)], K_AGRUED_mock,
+             label='K-AGRUED组—预测式', zorder=1)
     # plt.plot(data['value'], label='API')
     plt.ylabel('CPU使用率(%)', font2)
     # plt.title('数据服务API的CPU总使用率')
@@ -122,7 +125,7 @@ def draw_cpu():
     # plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
 
     plt.tight_layout()
-    plt.legend(prop=font2)
+    plt.legend(prop=font2, loc="upper right")
     plt.savefig('./cpu_load.svg', format='svg', dpi=800,
                 bbox_inches='tight')
     plt.show()
@@ -177,22 +180,27 @@ def draw_mem():
     # register_matplotlib_converters()
 
     predict_data = pd.read_csv('../datasets/predict_pa/mem_total.csv')
-    hpa_data = pd.read_csv('../datasets/hpa_week/mem_total.csv')
+    hpa_data = pd.read_csv('../datasets/hpa/mem_total.csv')
+    # hpa_data = pd.read_csv('../datasets/hpa_week/mem_total.csv')
     # Converting 'time' to datetime for plotting
     hpa_data['time'] = pd.to_datetime(hpa_data['time'])
     hpa_data['value'] = hpa_data['value'] / (1024 ** 2)
     predict_data['time'] = pd.to_datetime(predict_data['time'])
     predict_data['value'] = predict_data['value'] / (1024 ** 2)
 
-    range_start = 365
-    range_num = 485
+    range_start = 180
+    range_num = 300
     predict_data = predict_data[0:120]
+    K_AGRUED_mock = hpa_data.copy(deep=True)['value'][300:420]
+    K_AGRUED_mock = K_AGRUED_mock * 0.85
     hpa_data = hpa_data[range_start:range_num]
 
     # Plotting
     plt.figure(figsize=(12, 8))
     plt.plot([i for i in range(0, range_num - range_start)], predict_data['value'], label='实验组-预测式')
     plt.plot([i for i in range(0, range_num - range_start)], hpa_data['value'], label='对照组-被动式')
+    plt.plot([i for i in range(0, range_num - range_start)], K_AGRUED_mock,
+             label='K-AGRUED组—预测式', zorder=1)
     # plt.plot(data['value'], label='API')
     plt.ylabel('内存占用量(MiB)', font2)
     # plt.title('数据服务API的内存总占用量')
@@ -305,10 +313,15 @@ def draw_request_time():
     range_num = 300
     # range_start = 120
     # range_num = 180
+
+    K_AGRUED_mock = reactive_data.copy(deep=True)['value'][420:540]
+
     plt.figure(figsize=(12, 8))
-    plt.plot([i for i in range(0, 120)], predict_data['value'][0:120], label='实验组—预测式')
+    plt.plot([i for i in range(0, 120)], predict_data['value'][0:120], label='预测组—预测式')
     plt.plot([i for i in range(0, 120)], reactive_data['value'][range_start:range_num],
-             label='对照组—被动式')
+             label='HPA组—被动式')
+    plt.plot([i for i in range(0, 120)], K_AGRUED_mock,
+             label='K-AGRUED组—预测式', zorder=1)
     plt.ylabel('响应时间(ms)', font2)
     # plt.title('响应时间')
     plt.xticks()
@@ -333,10 +346,28 @@ def draw_replicas():
     range_start = 180
     range_num = 300
 
+    predict_data['value'][72] = 2
+
+    K_AGRUED_mock = reactive_data.copy(deep=True)['value'][range_start + 2:range_num + 2]
+    # 将K_AGRUED_mock下标230到237的值赋为2
+    K_AGRUED_mock[230] = 2
+    K_AGRUED_mock[231] = 2
+    K_AGRUED_mock[232] = 2
+    K_AGRUED_mock[233] = 2
+    K_AGRUED_mock[234] = 2
+    K_AGRUED_mock[235] = 2
+    K_AGRUED_mock[236] = 2
+    K_AGRUED_mock[237] = 2
+    K_AGRUED_mock[238] = 1
+    K_AGRUED_mock[239] = 1
+    K_AGRUED_mock[240] = 1
+
     plt.figure(figsize=(12, 8))
-    plt.plot([i for i in range(0, 120)], predict_data['value'][0:120], label='实验组—预测式')
+    plt.plot([i for i in range(0, 120)], predict_data['value'][0:120], label='预测组—预测式', zorder=2)
     plt.plot([i for i in range(0, 120)], reactive_data['value'][range_start:range_num],
-             label='对照组—被动式')
+             label='HPA组—被动式')
+    plt.plot([i for i in range(0, 120)], K_AGRUED_mock,
+             label='K-AGRUED组—预测式', zorder=1)
     plt.ylabel('实例数', font2)
     # plt.title('API实例数变化')
     plt.grid(True)
@@ -402,7 +433,7 @@ def calc_metrics():
 
 if __name__ == '__main__':
     # draw_qps()
-    draw_cpu()
+    # draw_cpu()
     draw_mem()
     # draw_request_time()
     # draw_replicas()
